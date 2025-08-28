@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Quasar + Vue CDN Calculator</title>
+  <!-- Quasar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.prod.css" rel="stylesheet">
+</head>
+<body class="q-pa-md">
+  <div id="q-app">
+    <q-card class="q-pa-md" style="max-width: 300px; margin: auto;">
+      <q-input v-model="displayText" label="Result" readonly></q-input>
+
+      <div class="q-mt-md">
+        <div v-for="row in buttons" :key="row" class="row q-col-gutter-sm q-mb-sm">
+          <div class="col" v-for="btn in row" :key="btn">
+            <q-btn :label="btn" color="primary" @click="onButtonClick(btn)" class="full-width"></q-btn>
+          </div>
+        </div>
+      </div>
+
+      <q-btn label="Clear" color="negative" class="full-width" @click="clearCalc"></q-btn>
+    </q-card>
+  </div>
+
+  <!-- Vue -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- Quasar -->
+  <script src="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.umd.prod.js"></script>
+
+  <script>
+    const { createApp, ref } = Vue;
+
+    const app = createApp({
+      setup() {
+        const displayText = ref("");
+        const buttons = [
+          ["7", "8", "9", "/"],
+          ["4", "5", "6", "*"],
+          ["1", "2", "3", "-"],
+          ["0", ".", "=", "+"]
+        ];
+
+        function onButtonClick(val) {
+          if (val === "=") {
+            try {
+              displayText.value = eval(displayText.value) || "";
+            } catch (e) {
+              displayText.value = "Error";
+            }
+          } else {
+            displayText.value += val;
+          }
+        }
+
+        function clearCalc() {
+          displayText.value = "";
+        }
+
+        return { displayText, buttons, onButtonClick, clearCalc };
+      }
+    });
+
+    app.use(Quasar);
+    app.mount("#q-app");
+  </script>
+</body>
+</html>

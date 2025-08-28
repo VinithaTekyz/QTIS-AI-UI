@@ -1,0 +1,123 @@
+.floating-chat {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+/* Force chat dialog to bottom-right */
+.chat-dialog .q-dialog__inner {
+    position: fixed !important;
+    /* allow bottom/right to take effect */
+    bottom: 10px !important;
+    right: 10px !important;
+    top: auto !important;
+    left: auto !important;
+    margin: 0 !important;
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+}
+
+/* Keep chat avatars fixed size */
+.chat-dialog .q-message-avatar {
+    flex: 0 0 auto !important;
+    /* don't let flex shrink */
+    width: 40px !important;
+    /* fixed width */
+    height: 40px !important;
+    /* fixed height */
+    min-width: 40px !important;
+    min-height: 40px !important;
+    align-self: flex-start !important;
+    /* top align with text */
+}
+
+.chat-dialog .q-message-text.q-message-text {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19) !important;
+    border-radius: 10px !important;
+    min-width: 50px;
+    padding-top: 0px !important;
+    line-height: 1.2 !important;
+  }
+
+/* Push sent (user) messages away from right avatar area */
+.chat-dialog .q-message-sent {
+    margin-left: 42px;
+    /* space on the left side */
+}
+
+/* Push received (bot) messages away from left avatar area */
+.chat-dialog .q-message-received {
+    margin-right: 42px;
+    /* space on the right side */
+}
+
+.chat-dialog .q-message-text:last-child:before {
+    position: unset !important;
+}
+
+.chat-dialog .items-end {
+    align-items: flex-start !important;
+}
+
+.chat-header {
+    position: relative;
+    background-image: linear-gradient(to right, #091c2d, #627ee7);
+    /* header color */
+    color: white;
+    padding: 10px 15px 30px;
+    /* extra bottom padding for wave space */
+}
+
+.chat-header-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 1px;
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+}
+
+.wave path {
+    fill: white;
+    /* background color of chat body */
+}
+
+/* Fade + dark loop */
+@keyframes fadeDark {
+    0% {
+    opacity: 1;
+    background-color: rgba(137, 134, 134, 0.2);
+    }
+
+    70% {
+    opacity: 0.7;
+    background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    100% {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.2);
+    }
+}
+
+.fade-dark-btn {
+    animation: fadeDark 2s infinite ease-in-out;
+    border-radius: 50px;
+}
+
+.chat-dialog .q-field__control:after,
+.chat-dialog .q-field__control:before {
+    bottom: unset !important;
+}
