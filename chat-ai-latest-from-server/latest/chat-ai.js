@@ -3,61 +3,54 @@ Vue.component('cnx-chat-ai', {
 	<div id="cnx-chat-ai">    
 		<div class="chat-ai">
 			<!-- Floating Chat Button -->
-			<div ref="chatBtn"
-				style="z-index:10;position: fixed; bottom: 20px; right: 40px; z-index: 9999; animation: fadeDark 2s infinite ease-in-out;">
-				<img src="https://i.postimg.cc/g2HH8Fk2/chatbot-bubble.png" alt="Chatbot" @click="openChat"
+			<div v-show="showIcon"
+				style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; animation: fadeDark 2s infinite ease-in-out;">
+				<img src="https://i.postimg.cc/g2HH8Fk2/chatbot-bubble.png" alt="Chatbot" @click="toggleChat"
 				style="width: 200px; height: 100px; cursor: pointer;" />
 				</q-btn>
 			</div>
+
 			<!-- Chat Panel -->
-			<div ref="chatDialog">
-				<q-dialog v-model="showChat" position="bottom-right" transition-hide="fade" :persistent="isMinimized" no-focus
-				seamless transition-show="slide-up" transition-duration="200"
-				style="z-index:20;position: fixed !important; bottom: 10px !important; right: 10px !important; top: auto !important; left: auto !important; margin: 0 !important; align-items: flex-end !important; justify-content: flex-end !important;">
-				<q-card ref="maximizedCard" v-show="!isMinimized"
-					style="position: fixed; bottom:20px; right:20px; height: 90vh !important;max-width: 70vh; min-width: 70vh; border-radius: 20px; max-height: 90vh; display: flex; flex-direction: column;"
-					class="q-pa-none">
-					<div
+			<q-dialog v-model="showChat" position="bottom-right" backdrop-filter="blur(4px)" transition-hide="fade"
+				transition-show="slide-up" transition-duration="200"
+				style="position: fixed !important; bottom: 10px !important; right: 10px !important; top: auto !important; left: auto !important; margin: 0 !important; align-items: flex-end !important; justify-content: flex-end !important;">
+				<q-card
+				style="position: fixed; bottom:20px; right:20px; min-height: 90vh; width: 100%; max-width: 70vh; min-width: 70vh; border-radius: 20px; max-height: 90vh; display: flex; flex-direction: column;"
+				class="q-pa-none">
+				<div
 					style="position: relative; background-image: linear-gradient(to right, #091c2d, #627ee7); color: white; padding: 10px 15px 30px;">
 					<div style="display: flex; align-items: center; gap: 10px; padding-bottom: 1px;">
-						<q-toolbar>
+					<q-toolbar>
 						<q-avatar
-							style="left: -12px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
-							<img
+						style="left: -12px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
+						<img
 							src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png">
 						</q-avatar>
-						<q-avatar v-show="!isMinimized"
-							style="left: -24px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
-							<img
+						<q-avatar
+						style="left: -24px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
+						<img
 							src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png">
 						</q-avatar>
 
 						<q-toolbar-title><span style="font-size: 18px; font-weight: bold;">Qtis</span>
-							Assistant</q-toolbar-title>
-						<q-btn-group>
-							<q-btn v-show="!isMinimized" flat round dense icon="expand_more" @click="toggleMinimize" />
-						</q-btn-group>
-						<q-btn-group>
-							<q-btn v-show="isMinimized" flat round dense icon="expand_less" @click="toggleMinimize" />
-						</q-btn-group>
-						<q-btn-group>
-							<q-btn flat round dense icon="close" @click="toggleChat" />
-						</q-btn-group>
-						</q-toolbar>
-					</div>
-					<q-badge v-show="!isMinimized" rounded color="green"></q-badge> <span v-show="!isMinimized">Online</span>
-					<svg v-show="!isMinimized" viewBox="0 0 500 100" preserveAspectRatio="none"
-						style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;">
-						<path d="M0,40 C120,100 360,0 720,34 C1080,68 1320,8 1440,48 L1440,120 L0,120 Z" fill="white" />
-					</svg>
-					</div>
+						Assistant</q-toolbar-title>
 
-					<!-- Messages -->
-					<q-card-section v-show="!isMinimized" style="flex: 1; overflow-y: auto;" ref="chatContainer">
+						<q-btn flat round dense icon="close" v-close-popup @click="toggleChat" />
+					</q-toolbar>
+					</div>
+					<q-badge rounded color="green"></q-badge> Online
+					<svg viewBox="0 0 500 100" preserveAspectRatio="none"
+					style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;">
+					<path d="M0,40 C120,100 360,0 720,34 C1080,68 1320,8 1440,48 L1440,120 L0,120 Z" fill="white" />
+					</svg>
+				</div>
+
+				<!-- Messages -->
+				<q-card-section style="flex: 1; overflow-y: auto;" ref="chatContainer">
 					<template v-for="(msg, index) in messages" :key="index">
 
-						<!-- User message -->
-						<div v-if="msg.from === 'user'"
+					<!-- User message -->
+					<div v-if="msg.from === 'user'"
 						style="display: flex; align-items: flex-end; justify-content: flex-end; margin-bottom: 8px; margin-left:40px">
 						<q-chat-message text-color="white" sent bg-color="indigo-10" style="max-width: max-content;
 								background: #1A237E;
@@ -67,19 +60,19 @@ Vue.component('cnx-chat-ai', {
 								min-width: 50px;
 								line-height: 1.2 !important;
 								padding-top: 0px !important;">
-							<div v-html="msg.text"></div>
+						<div v-html="msg.text"></div>
 						</q-chat-message>
 
 						<img src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png"
-							style="width: 28px; height: 28px; border-radius: 50%; margin-left: 8px;" />
-						</div>
+						style="width: 28px; height: 28px; border-radius: 50%; margin-left: 8px;" />
+					</div>
 
-						<!-- Bot message -->
-						<div v-if="msg.from === 'bot'"
+					<!-- Bot message -->
+					<div v-if="msg.from === 'bot'"
 						style="display: flex; align-items: flex-end; justify-content: flex-start; margin-bottom: 8px; margin-right: 40px;">
 						<img
-							src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png"
-							style="width: 28px; height: 28px; border-radius: 50%; margin-right: 8px;" />
+						src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png"
+						style="width: 28px; height: 28px; border-radius: 50%; margin-right: 8px;" />
 
 						<q-chat-message bg-color="white" text-color="black" style="max-width: max-content;
 								margin: 0;
@@ -88,122 +81,81 @@ Vue.component('cnx-chat-ai', {
 								min-width: 50px;
 								line-height: 1.2 !important;
 								padding-top: 0px !important;">
-							<template v-if="msg.isLoading">
+						<template v-if="msg.isLoading">
 							<q-spinner-dots size="2rem" />
-							</template>
-							<template v-else>
+						</template>
+						<template v-else>
 							<div v-html="msg.text"></div>
-							</template>
+						</template>
 						</q-chat-message>
-						</div>
+					</div>
 
 					</template>
 
-					</q-card-section>
+				</q-card-section>
 
-					<!-- Quick Questions -->
-					<q-card v-show="!isMinimized" style="padding-left: 20px; color:#0d4f8a">
+				<!-- Quick Questions -->
+				<q-card style="padding-left: 20px; color:#0d4f8a">
 					Quick questions:
 					<q-card-actions align="center" style="flex-wrap: wrap;">
-						<q-btn outline rounded color="primary" style="margin:2px" size="xs"
+					<q-btn outline rounded color="primary" style="margin:2px" size="xs"
 						@click="sendMessage('How can I access the portal?')">
 						How can I access the portal?
-						</q-btn>
-						<q-btn outline rounded color="primary" style="margin:2px" size="xs"
+					</q-btn>
+					<q-btn outline rounded color="primary" style="margin:2px" size="xs"
 						@click="sendMessage('Give me support email.')">
 						Give me support email
-						</q-btn>
-						<q-btn outline rounded color="primary" style="margin:2px" size="xs"
-						@click="sendMessage('Book a slot.')">
+					</q-btn>
+					<q-btn outline rounded color="primary" style="margin:2px" size="xs" @click="sendMessage('Book a slot.')">
 						Book a slot
-						</q-btn>
-						<q-btn outline rounded color="primary" style="margin:2px" size="xs"
+					</q-btn>
+					<q-btn outline rounded color="primary" style="margin:2px" size="xs"
 						@click="sendMessage('I am facing issue with login.')">
 						I am facing issue with login
-						</q-btn>
+					</q-btn>
 					</q-card-actions>
-					</q-card>
+				</q-card>
 
-					<!-- File Preview -->
-					<q-card-section v-show="!isMinimized" v-if="attachedFiles.length"
-					style="padding:10px; display:flex; flex-wrap:wrap; gap:8px;">
+				<!-- File Preview -->
+				<q-card-section v-if="attachedFiles.length" style="padding:10px; display:flex; flex-wrap:wrap; gap:8px;">
 					<div v-for="(file, idx) in attachedFiles" :key="idx">
-						<q-btn outline rounded push style="background-color:#0d4f8a!important;color:white" size="sm"
-						:label="file.filename">
+					<q-btn outline rounded push style="background-color:#0d4f8a!important;color:white" size="sm" :label="file.filename">
 						<q-badge color="red" floating rounded style="cursor:pointer;" @click="removeFile(idx)">
-							-
+						-
 						</q-badge>
-						</q-btn>
+					</q-btn>
 					</div>
-					</q-card-section>
+				</q-card-section>
 
-					<q-card-actions v-show="!isMinimized" align="center" style="display:flex; gap:5px; padding:8px;">
+				<q-card-actions align="center" style="display:flex; gap:5px; padding:8px;">
 					<!-- Attach File Button -->
 					<div style="flex:0 0 auto;">
-						<q-btn flat style="color:#0d4f8a!important;" icon="attach_file" @click="$refs.fileInput.click()" />
+					<q-btn flat style="color:#0d4f8a!important;" icon="attach_file" @click="$refs.fileInput.click()" />
 					</div>
 
 					<!-- Hidden File Input -->
 					<input type="file" ref="fileInput" style="display:none" accept=".xls,.xlsx,.pdf,.png,.jpg,.jpeg" multiple
-						@change="handleFileUpload" />
+					@change="handleFileUpload" />
 
 					<!-- Message Input -->
 					<div style="flex:1; min-width:0;">
-						<q-input rounded v-model="newMessage" placeholder="Type your message..."
+					<q-input rounded v-model="newMessage" placeholder="Type your message..."
 						@keyup.enter="sendMessage(newMessage)" style="width:100%;" />
 					</div>
 
 					<!-- Send Button -->
 					<div style="flex:0 0 auto;">
-						<q-btn flat style="color:#0d4f8a!important" icon="send" @click="sendMessage(newMessage)" />
+					<q-btn flat style="color:#0d4f8a!important" icon="send" @click="sendMessage(newMessage)" />
 					</div>
-					</q-card-actions>
+				</q-card-actions>
 
 				</q-card>
-				<q-card  ref="minimizedCard" v-show="isMinimized"
-					style="position: fixed; bottom:20px; right:20px; max-width: 30vh; border-radius: 20px; display: flex; flex-direction: column;"
-					class="q-pa-none">
-					<div
-					style="position: relative; background-image: linear-gradient(to right, #091c2d, #627ee7); color: white; padding: 10px 15px;">
-					<div style="display: flex; align-items: center; gap: 10px; padding-bottom: 1px;">
-						<q-toolbar>
-						<q-avatar
-							style="left: -12px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
-							<img
-							src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png">
-						</q-avatar>
-						<q-avatar
-							style="left: -24px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
-							<img
-							src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png">
-						</q-avatar>
-						<q-btn-group>
-							<q-btn v-show="!isMinimized" flat round dense icon="expand_more" @click="toggleMinimize" />
-						</q-btn-group>
-						<q-btn-group>
-							<q-btn v-show="isMinimized" flat round dense icon="expand_less" @click="toggleMinimize" />
-						</q-btn-group>
-						<q-btn-group>
-							<q-btn flat round dense icon="close" @click="toggleChat" />
-						</q-btn-group>
-						</q-toolbar>
-					</div>
-					<q-badge v-show="!isMinimized" rounded color="green"></q-badge> <span v-show="!isMinimized">Online</span>
-					<svg v-show="!isMinimized" viewBox="0 0 500 100" preserveAspectRatio="none"
-						style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;">
-						<path d="M0,40 C120,100 360,0 720,34 C1080,68 1320,8 1440,48 L1440,120 L0,120 Z" fill="white" />
-					</svg>
-					</div>
-
-				</q-card>
-				</q-dialog>
-			</div>
+			</q-dialog>
 		</div>
 	</div>`,
 	data() {
 		return {
 			botIndex: -1,
-			isMinimized: false,
 			showChat: false,
 			chatContainer: null,
 			showIcon: true,
@@ -226,32 +178,21 @@ Vue.component('cnx-chat-ai', {
 	},
 	methods: {
 		handleOutsideClick(event) {
-			const chat = this.$refs.chatDialog;
-			const chatBtn = this.$refs.chatBtn;
-			const minimizedCard = this.$refs.minimizedCard.$el;
-			const maximizedCard = this.$refs.maximizedCard.$el;
-  
-			// Guard clauses
-			if (!this.showChat) return;
-			if (!chat && !chatBtn) return;
-  
-			const isInsideChat = chat && chat.contains(event.target);
-			const isChatButton = chatBtn && chatBtn.contains(event.target);
-			const isInsideMinimized = minimizedCard && minimizedCard.contains(event.target);
-			const isInsideMaximized = maximizedCard && maximizedCard.contains(event.target);
-			if (!isInsideChat && !isChatButton && !isInsideMinimized && !isInsideMaximized) {
-			  this.isMinimized = true;
+			const chat = this.$el.querySelector(".q-dialog");
+			const chatBtn = this.$el.querySelector("img[alt='Chatbot']");
+
+			if (
+				this.showChat &&
+				chat &&
+				!chat.contains(event.target) &&
+				!chatBtn.contains(event.target)
+			) {
+				this.showChat = false;
 			}
-		  },
-		toggleMinimize() {
-			this.isMinimized = !this.isMinimized;
 		},
 		toggleChat() {
 			this.showChat = !this.showChat;
-		},
-		openChat() {
-			this.showChat = true;
-			this.isMinimized = false;
+			if (this.showChat) this.unreadCount = 0;
 		},
 		handleFileUpload(event) {
 			const files = Array.from(event.target.files);
@@ -314,7 +255,6 @@ Vue.component('cnx-chat-ai', {
 			this.$nextTick(() => this.scrollToBottom());
 			// Push bot loading message
 			// store index of the bot message
-
 
 			var parameters = {
 				messages: [

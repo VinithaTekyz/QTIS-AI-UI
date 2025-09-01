@@ -13,62 +13,63 @@
   <div>
     <div id="q-app">
       <!-- Floating Chat Button -->
-      <div v-show="!showChat"
+      <div ref="chatBtn" v-show="!showChat"
         style="z-index:10;position: fixed; bottom: 20px; right: 40px; z-index: 9999; animation: fadeDark 2s infinite ease-in-out;">
-        <img src="https://i.postimg.cc/g2HH8Fk2/chatbot-bubble.png" alt="Chatbot" @click="toggleChat"
+        <img src="https://i.postimg.cc/g2HH8Fk2/chatbot-bubble.png" alt="Chatbot" @click="openChat"
           style="width: 200px; height: 100px; cursor: pointer;" />
         </q-btn>
       </div>
       <!-- Chat Panel -->
-      <q-dialog v-model="showChat" position="bottom-right" transition-hide="fade" :persistent="isMinimized" no-focus
-        seamless transition-show="slide-up" transition-duration="200"
-        style="z-index:20;position: fixed !important; bottom: 10px !important; right: 10px !important; top: auto !important; left: auto !important; margin: 0 !important; align-items: flex-end !important; justify-content: flex-end !important;">
-        <q-card v-show="!isMinimized"
-          style="position: fixed; bottom:20px; right:20px; height: 90vh !important;max-width: 70vh; min-width: 70vh; border-radius: 20px; max-height: 90vh; display: flex; flex-direction: column;"
-          class="q-pa-none">
-          <div
-            style="position: relative; background-image: linear-gradient(to right, #091c2d, #627ee7); color: white; padding: 10px 15px 30px;">
-            <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 1px;">
-              <q-toolbar>
-                <q-avatar
-                  style="left: -12px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
-                  <img
-                    src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png">
-                </q-avatar>
-                <q-avatar v-show="!isMinimized"
-                  style="left: -24px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
-                  <img
-                    src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png">
-                </q-avatar>
+      <div ref="chatDialog">
+        <q-dialog @click.stop v-model="showChat" position="bottom-right" transition-hide="fade" :persistent="isMinimized" no-focus
+          seamless transition-show="slide-up" transition-duration="200"
+          style="z-index:20;position: fixed !important; bottom: 10px !important; right: 10px !important; top: auto !important; left: auto !important; margin: 0 !important; align-items: flex-end !important; justify-content: flex-end !important;">
+          <q-card ref="maximizedCard" v-show="!isMinimized"
+            style="position: fixed; bottom:20px; right:20px; height: 90vh !important;max-width: 70vh; min-width: 70vh; border-radius: 20px; max-height: 90vh; display: flex; flex-direction: column;"
+            class="q-pa-none">
+            <div
+              style="position: relative; background-image: linear-gradient(to right, #091c2d, #627ee7); color: white; padding: 10px 15px 30px;">
+              <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 1px;">
+                <q-toolbar>
+                  <q-avatar
+                    style="left: -12px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
+                    <img
+                      src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png">
+                  </q-avatar>
+                  <q-avatar v-show="!isMinimized"
+                    style="left: -24px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
+                    <img
+                      src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png">
+                  </q-avatar>
 
-                <q-toolbar-title><span style="font-size: 18px; font-weight: bold;">Qtis</span>
-                  Assistant</q-toolbar-title>
-                <q-btn-group>
-                  <q-btn v-show="!isMinimized" flat round dense icon="expand_more" @click="toggleMinimize" />
-                </q-btn-group>
-                <q-btn-group>
-                  <q-btn v-show="isMinimized" flat round dense icon="expand_less" @click="toggleMinimize" />
-                </q-btn-group>
-                <q-btn-group>
-                  <q-btn flat round dense icon="close" @click="toggleChat" />
-                </q-btn-group>
-              </q-toolbar>
+                  <q-toolbar-title><span style="font-size: 18px; font-weight: bold;">Qtis</span>
+                    Assistant</q-toolbar-title>
+                  <q-btn-group>
+                    <q-btn v-show="!isMinimized" flat round dense icon="expand_more" @click="toggleMinimize" />
+                  </q-btn-group>
+                  <q-btn-group>
+                    <q-btn v-show="isMinimized" flat round dense icon="expand_less" @click="toggleMinimize" />
+                  </q-btn-group>
+                  <q-btn-group>
+                    <q-btn flat round dense icon="close" @click="toggleChat" />
+                  </q-btn-group>
+                </q-toolbar>
+              </div>
+              <q-badge v-show="!isMinimized" rounded color="green"></q-badge> <span v-show="!isMinimized">Online</span>
+              <svg v-show="!isMinimized" viewBox="0 0 500 100" preserveAspectRatio="none"
+                style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;">
+                <path d="M0,40 C120,100 360,0 720,34 C1080,68 1320,8 1440,48 L1440,120 L0,120 Z" fill="white" />
+              </svg>
             </div>
-            <q-badge v-show="!isMinimized" rounded color="green"></q-badge> <span v-show="!isMinimized">Online</span>
-            <svg v-show="!isMinimized" viewBox="0 0 500 100" preserveAspectRatio="none"
-              style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;">
-              <path d="M0,40 C120,100 360,0 720,34 C1080,68 1320,8 1440,48 L1440,120 L0,120 Z" fill="white" />
-            </svg>
-          </div>
 
-          <!-- Messages -->
-          <q-card-section v-show="!isMinimized" style="flex: 1; overflow-y: auto;" ref="chatContainer">
-            <template v-for="(msg, index) in messages" :key="index">
+            <!-- Messages -->
+            <q-card-section v-show="!isMinimized" style="flex: 1; overflow-y: auto;" ref="chatContainer">
+              <template v-for="(msg, index) in messages" :key="index">
 
-              <!-- User message -->
-              <div v-if="msg.from === 'user'"
-                style="display: flex; align-items: flex-end; justify-content: flex-end; margin-bottom: 8px; margin-left:40px">
-                <q-chat-message text-color="white" sent bg-color="indigo-10" style="max-width: max-content;
+                <!-- User message -->
+                <div v-if="msg.from === 'user'"
+                  style="display: flex; align-items: flex-end; justify-content: flex-end; margin-bottom: 8px; margin-left:40px">
+                  <q-chat-message text-color="white" sent bg-color="indigo-10" style="max-width: max-content;
                          background: #1A237E;
                          margin: 0;
                          box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.19) !important;
@@ -76,135 +77,137 @@
                          min-width: 50px;
                          line-height: 1.2 !important;
                          padding-top: 0px !important;">
-                  <div v-html="msg.text"></div>
-                </q-chat-message>
+                    <div v-html="msg.text"></div>
+                  </q-chat-message>
 
-                <img src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png"
-                  style="width: 28px; height: 28px; border-radius: 50%; margin-left: 8px;" />
-              </div>
+                  <img src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png"
+                    style="width: 28px; height: 28px; border-radius: 50%; margin-left: 8px;" />
+                </div>
 
-              <!-- Bot message -->
-              <div v-if="msg.from === 'bot'"
-                style="display: flex; align-items: flex-end; justify-content: flex-start; margin-bottom: 8px; margin-right: 40px;">
-                <img
-                  src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png"
-                  style="width: 28px; height: 28px; border-radius: 50%; margin-right: 8px;" />
+                <!-- Bot message -->
+                <div v-if="msg.from === 'bot'"
+                  style="display: flex; align-items: flex-end; justify-content: flex-start; margin-bottom: 8px; margin-right: 40px;">
+                  <img
+                    src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png"
+                    style="width: 28px; height: 28px; border-radius: 50%; margin-right: 8px;" />
 
-                <q-chat-message bg-color="white" text-color="black" style="max-width: max-content;
+                  <q-chat-message bg-color="white" text-color="black" style="max-width: max-content;
                          margin: 0;
                          box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.19) !important;
                          border-radius: 10px !important;
                          min-width: 50px;
                          line-height: 1.2 !important;
                          padding-top: 0px !important;">
-                  <template v-if="msg.isLoading">
-                    <q-spinner-dots size="2rem" />
-                  </template>
-                  <template v-else>
-                    <div v-html="msg.text"></div>
-                  </template>
-                </q-chat-message>
+                    <template v-if="msg.isLoading">
+                      <q-spinner-dots size="2rem" />
+                    </template>
+                    <template v-else>
+                      <div v-html="msg.text"></div>
+                    </template>
+                  </q-chat-message>
+                </div>
+
+              </template>
+
+            </q-card-section>
+
+            <!-- Quick Questions -->
+            <q-card v-show="!isMinimized" style="padding-left: 20px; color:#0d4f8a">
+              Quick questions:
+              <q-card-actions align="center" style="flex-wrap: wrap;">
+                <q-btn outline rounded color="primary" style="margin:2px" size="xs"
+                  @click="sendMessage('How can I access the portal?')">
+                  How can I access the portal?
+                </q-btn>
+                <q-btn outline rounded color="primary" style="margin:2px" size="xs"
+                  @click="sendMessage('Give me support email.')">
+                  Give me support email
+                </q-btn>
+                <q-btn outline rounded color="primary" style="margin:2px" size="xs"
+                  @click="sendMessage('Book a slot.')">
+                  Book a slot
+                </q-btn>
+                <q-btn outline rounded color="primary" style="margin:2px" size="xs"
+                  @click="sendMessage('I am facing issue with login.')">
+                  I am facing issue with login
+                </q-btn>
+              </q-card-actions>
+            </q-card>
+
+            <!-- File Preview -->
+            <q-card-section v-show="!isMinimized" v-if="attachedFiles.length"
+              style="padding:10px; display:flex; flex-wrap:wrap; gap:8px;">
+              <div v-for="(file, idx) in attachedFiles" :key="idx">
+                <q-btn outline rounded push style="background-color:#0d4f8a!important;color:white" size="sm"
+                  :label="file.filename">
+                  <q-badge color="red" floating rounded style="cursor:pointer;" @click="removeFile(idx)">
+                    -
+                  </q-badge>
+                </q-btn>
+              </div>
+            </q-card-section>
+
+            <q-card-actions v-show="!isMinimized" align="center" style="display:flex; gap:5px; padding:8px;">
+              <!-- Attach File Button -->
+              <div style="flex:0 0 auto;">
+                <q-btn flat style="color:#0d4f8a!important;" icon="attach_file" @click="$refs.fileInput.click()" />
               </div>
 
-            </template>
+              <!-- Hidden File Input -->
+              <input type="file" ref="fileInput" style="display:none" accept=".xls,.xlsx,.pdf,.png,.jpg,.jpeg" multiple
+                @change="handleFileUpload" />
 
-          </q-card-section>
+              <!-- Message Input -->
+              <div style="flex:1; min-width:0;">
+                <q-input rounded v-model="newMessage" placeholder="Type your message..."
+                  @keyup.enter="sendMessage(newMessage)" style="width:100%;" />
+              </div>
 
-          <!-- Quick Questions -->
-          <q-card v-show="!isMinimized" style="padding-left: 20px; color:#0d4f8a">
-            Quick questions:
-            <q-card-actions align="center" style="flex-wrap: wrap;">
-              <q-btn outline rounded color="primary" style="margin:2px" size="xs"
-                @click="sendMessage('How can I access the portal?')">
-                How can I access the portal?
-              </q-btn>
-              <q-btn outline rounded color="primary" style="margin:2px" size="xs"
-                @click="sendMessage('Give me support email.')">
-                Give me support email
-              </q-btn>
-              <q-btn outline rounded color="primary" style="margin:2px" size="xs" @click="sendMessage('Book a slot.')">
-                Book a slot
-              </q-btn>
-              <q-btn outline rounded color="primary" style="margin:2px" size="xs"
-                @click="sendMessage('I am facing issue with login.')">
-                I am facing issue with login
-              </q-btn>
+              <!-- Send Button -->
+              <div style="flex:0 0 auto;">
+                <q-btn flat style="color:#0d4f8a!important" icon="send" @click="sendMessage(newMessage)" />
+              </div>
             </q-card-actions>
+
           </q-card>
-
-          <!-- File Preview -->
-          <q-card-section v-show="!isMinimized" v-if="attachedFiles.length"
-            style="padding:10px; display:flex; flex-wrap:wrap; gap:8px;">
-            <div v-for="(file, idx) in attachedFiles" :key="idx">
-              <q-btn outline rounded push style="background-color:#0d4f8a!important;color:white" size="sm"
-                :label="file.filename">
-                <q-badge color="red" floating rounded style="cursor:pointer;" @click="removeFile(idx)">
-                  -
-                </q-badge>
-              </q-btn>
+          <q-card ref="minimizedCard" v-show="isMinimized"
+            style="position: fixed; bottom:20px; right:20px; max-width: 30vh; border-radius: 20px; display: flex; flex-direction: column;"
+            class="q-pa-none">
+            <div
+              style="position: relative; background-image: linear-gradient(to right, #091c2d, #627ee7); color: white; padding: 10px 15px;">
+              <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 1px;">
+                <q-toolbar>
+                  <q-avatar
+                    style="left: -12px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
+                    <img
+                      src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png">
+                  </q-avatar>
+                  <q-avatar
+                    style="left: -24px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
+                    <img
+                      src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png">
+                  </q-avatar>
+                  <q-btn-group>
+                    <q-btn v-show="!isMinimized" flat round dense icon="expand_more" @click="toggleMinimize" />
+                  </q-btn-group>
+                  <q-btn-group>
+                    <q-btn v-show="isMinimized" flat round dense icon="expand_less" @click="toggleMinimize" />
+                  </q-btn-group>
+                  <q-btn-group>
+                    <q-btn flat round dense icon="close" @click="toggleChat" />
+                  </q-btn-group>
+                </q-toolbar>
+              </div>
+              <q-badge v-show="!isMinimized" rounded color="green"></q-badge> <span v-show="!isMinimized">Online</span>
+              <svg v-show="!isMinimized" viewBox="0 0 500 100" preserveAspectRatio="none"
+                style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;">
+                <path d="M0,40 C120,100 360,0 720,34 C1080,68 1320,8 1440,48 L1440,120 L0,120 Z" fill="white" />
+              </svg>
             </div>
-          </q-card-section>
 
-          <q-card-actions v-show="!isMinimized" align="center" style="display:flex; gap:5px; padding:8px;">
-            <!-- Attach File Button -->
-            <div style="flex:0 0 auto;">
-              <q-btn flat style="color:#0d4f8a!important;" icon="attach_file" @click="$refs.fileInput.click()" />
-            </div>
-
-            <!-- Hidden File Input -->
-            <input type="file" ref="fileInput" style="display:none" accept=".xls,.xlsx,.pdf,.png,.jpg,.jpeg" multiple
-              @change="handleFileUpload" />
-
-            <!-- Message Input -->
-            <div style="flex:1; min-width:0;">
-              <q-input rounded v-model="newMessage" placeholder="Type your message..."
-                @keyup.enter="sendMessage(newMessage)" style="width:100%;" />
-            </div>
-
-            <!-- Send Button -->
-            <div style="flex:0 0 auto;">
-              <q-btn flat style="color:#0d4f8a!important" icon="send" @click="sendMessage(newMessage)" />
-            </div>
-          </q-card-actions>
-
-        </q-card>
-        <q-card v-show="isMinimized"
-          style="position: fixed; bottom:20px; right:20px; max-width: 30vh; border-radius: 20px; display: flex; flex-direction: column;"
-          class="q-pa-none">
-          <div
-            style="position: relative; background-image: linear-gradient(to right, #091c2d, #627ee7); color: white; padding: 10px 15px;">
-            <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 1px;">
-              <q-toolbar>
-                <q-avatar
-                  style="left: -12px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
-                  <img
-                    src="https://cdn3.iconfinder.com/data/icons/customer-service-color/64/support_customer_service_technical_support_avatar_call_center_agent_customer_support_man_support_agent_call_center-512.png">
-                </q-avatar>
-                <q-avatar
-                  style="left: -24px; flex: 0 0 auto !important; width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; align-self: flex-start !important;">
-                  <img
-                    src="https://www.kindpng.com/picc/m/630-6306130_avatar-avatar-male-user-icon-hd-png-download.png">
-                </q-avatar>
-                <q-btn-group>
-                  <q-btn v-show="!isMinimized" flat round dense icon="expand_more" @click="toggleMinimize" />
-                </q-btn-group>
-                <q-btn-group>
-                  <q-btn v-show="isMinimized" flat round dense icon="expand_less" @click="toggleMinimize" />
-                </q-btn-group>
-                <q-btn-group>
-                  <q-btn flat round dense icon="close" @click="toggleChat" />
-                </q-btn-group>
-              </q-toolbar>
-            </div>
-            <q-badge v-show="!isMinimized" rounded color="green"></q-badge> <span v-show="!isMinimized">Online</span>
-            <svg v-show="!isMinimized" viewBox="0 0 500 100" preserveAspectRatio="none"
-              style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;">
-              <path d="M0,40 C120,100 360,0 720,34 C1080,68 1320,8 1440,48 L1440,120 L0,120 Z" fill="white" />
-            </svg>
-          </div>
-
-        </q-card>
-      </q-dialog>
+          </q-card>
+        </q-dialog>
+      </div>
     </div>
   </div>
 
@@ -232,12 +235,32 @@
           ]
         }
       },
+      mounted() {
+        document.addEventListener("click", this.handleOutsideClick);
+      },
+      beforeUnmount() {
+        document.removeEventListener("click", this.handleOutsideClick);
+      },
       methods: {
-        cardStyle() {
-          if (this.isMinimized) {
-            return "position: fixed; bottom:20px; right:20px; max-width: 50vh; min-width: 50vh; border-radius: 20px; display: flex; flex-direction: column;"
-          } else {
-            return "position: fixed; bottom:20px; right:20px; height: 90vh !important;max-width: 70vh; min-width: 70vh; border-radius: 20px; max-height: 90vh; display: flex; flex-direction: column;"
+        handleOutsideClick(event) {
+          const chat = this.$refs.chatDialog;
+          const chatBtn = this.$refs.chatBtn;
+          const minimizedCard = this.$refs.minimizedCard.$el;
+          const maximizedCard = this.$refs.maximizedCard.$el;
+
+          // Guard clauses
+          if (!this.showChat) return;
+          if (!chat && !chatBtn) return;
+
+          console.log("==========0000000=========")
+          const isInsideChat = chat && chat.contains(event.target);
+          const isChatButton = chatBtn && chatBtn.contains(event.target);
+          const isInsideMinimized = minimizedCard && minimizedCard.contains(event.target);
+          const isInsideMaximized = maximizedCard && maximizedCard.contains(event.target);
+          console.log("===================")
+          if (!isInsideChat && !isChatButton && !isInsideMinimized && !isInsideMaximized) {
+            console.log("==========5555555=========", !isInsideChat, !isChatButton, !isInsideMinimized)
+            this.isMinimized = true;
           }
         },
         toggleMinimize() {
@@ -247,6 +270,10 @@
         toggleChat() {
           console.log("-------++++++++----", this.isMinimized, this.showChat)
           this.showChat = !this.showChat;
+        },
+        openChat() {
+          this.showChat = true;
+          this.isMinimized = false;
         },
         handleFileUpload(event) {
           const files = Array.from(event.target.files);
