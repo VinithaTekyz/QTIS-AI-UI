@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Quasar + Vue Chatbot</title>
+    <!-- Quasar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.prod.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .custom-msg .q-message-text:last-child {
+            min-height: unset !important;
+        }
+    </style>
+</head>
+
+<body class="q-pa-md">
+    <div id="q-app">
+        <div>
+            <div class="q-mt-sm">
+                <q-dialog @click.stop v-model="isMinimized" position="bottom-right" transition-hide="fade" persistent
+                    no-focus seamless transition-show="slide-up" transition-duration="200"
+                    style="z-index:20;position: fixed !important; bottom: 10px !important; right: 10px !important; top: auto !important; left: auto !important; margin: 0 !important; align-items: flex-end !important; justify-content: flex-end !important;">
+                    <q-card
+                        style="width: 300px; height: 50px; display: flex; align-items: center; justify-content: space-between !important; padding: 0 8px;">
+                        <!-- Header with close button -->
+                        <div>QTIS AI</div>
+                        <div style="display: flex;">
+                            <div>
+                                <q-btn dense flat round :icon="isMinimized ? 'expand_less' : 'expand_more'"
+                                    color="grey-7" @click="toggleMinimize" />
+                            </div>
+                            <q-btn dense flat round icon="close" color="grey-7" @click="toggleChat" />
+                        </div>
+                    </q-card>
+
+                </q-dialog>
+            </div>
+            <div v-if="showChat"
+                style="height:280px; display:flex; flex-direction:column; background-color: rgb(245 245 245); align-items: center;"
+                :class="messages.length === 0 ? 'justify-center' : ''">
+                <!-- Header with close button -->
+                <div style="position: absolute; top: 14px; right: 14px; display: flex;">
+                    <div>
+                        <q-btn dense flat round :icon="isMinimized ? 'expand_less' : 'expand_more'" color="grey-7"
+                            @click="toggleMinimize" />
+                    </div>
+                    <div>
+                        <q-btn dense flat round icon="delete" color="grey-7" @click="clearChat" />
+                    </div>
+                    <q-btn dense flat round icon="close" color="grey-7" @click="toggleChat" />
+                </div>
+                <!-- Messages -->
+                <q-card-section v-show="messages.length" style="flex: 1; overflow-y: auto; width:70%"
+                    ref="chatContainer">
+                    <template v-for="(msg, index) in messages" :key="index">
+
+                        <!-- User message -->
+                        <div v-if="msg.from === 'user'" class="custom-msg"
+                            style="display: flex; align-items: flex-end; justify-content: flex-end; margin-bottom: 8px; margin-left:40px">
+                            <q-chat-message text-color="white" sent bg-color="grey-6" style="max-width: max-content;
+                         margin: 0;
+                         border-radius: 10px !important;
+                         min-width: 50px;
+                         line-height: 1.2 !important;
+                         padding-top: 0px !important;
+                         min-height: auto !important;
+                         ">
+                                <div v-html="msg.text"></div>
+                            </q-chat-message>
+                        </div>
+
+                        <!-- Bot message -->
+                        <div v-if="msg.from === 'bot'" class="custom-msg"
+                            style="display: flex; align-items: flex-end; justify-content: flex-start; margin-bottom: 8px; margin-right: 40px;">
+
+                            <q-chat-message bg-color="white" text-color="black" style="max-width: max-content;
+                         margin: 0;
+                         border-radius: 10px !important;
+                         min-width: 50px;
+                         line-height: 1.2 !important;
+                         padding-top: 0px !important;
+                         min-height: auto !important;">
+                                <template v-if="msg.isLoading">
+                                    <q-spinner-dots size="1rem" />
+                                </template>
+                                <template v-else>
+                                    <div v-html="msg.text"></div>
+                                </template>
+                            </q-chat-message>
+                        </div>
+
+                    </template>
+
+                </q-card-section>
+
+                <!-- Quick Access -->
+
+                <q-card style="padding-left: 20px; color:#0d4f8a; box-shadow: none; background-color: transparent;">
+                    <q-card-actions align="center" style="flex-wrap: wrap;">
+                        <q-btn outline rounded icon="add" label="User" color="primary" style="margin:2px" size="xs"
+                            @click="openForms('users')">
+                        </q-btn>
+                        <q-btn outline rounded icon="add" label="Client" color="primary" style="margin:2px" size="xs"
+                            @click="openForms('clients')">
+                        </q-btn>
+                        <q-btn outline rounded icon="add" label="Notes" color="primary" style="margin:2px" size="xs"
+                            @click="openForms('notepad')">
+                        </q-btn>
+                        <q-btn outline rounded icon="add" label="Case" color="primary" style="margin:2px" size="xs"
+                            @click="openForms('cases')">
+                        </q-btn>
+                    </q-card-actions>
+                </q-card>
+                <q-card-section v-if="attachedFiles.length" class="q-pt-none">
+                    <div class="row" style="gap:6px; flex-wrap:wrap;">
+                        <q-chip v-for="(f, idx) in attachedFiles" :key="idx" outline removable
+                            @remove="removeChatFile(idx)" text-color="grey-7" size="xs" icon="file_attachment"
+                            :label="f.filename">
+                        </q-chip>
+                    </div>
+                </q-card-section>
+                <!-- Chat input (composer) -->
+                <q-card-actions align="center" class="q-pa-sm bg-grey-2"
+                    style="gap:6px; border-top:1px solid #eee; width:70%">
+                    <q-input outlined dense autogrow rounded class="col" v-model="newMessage"
+                        placeholder="Message Iris..." @keyup.enter="sendMessage(newMessage)"
+                        :input-style="{ maxHeight: '120px', overflowY: 'auto' }">
+                        <div style="flex:0 0 auto;">
+                            <q-btn color="grey-7" flat icon="add" @click="$refs.fileInput.click()" />
+                        </div>
+
+                        <!-- Hidden File Input -->
+                        <input type="file" ref="fileInput" style="display:none" accept=".xls,.xlsx,.pdf,.png,.jpg,.jpeg"
+                            multiple @change="handleFileUpload" />
+                        <!-- Right slot (send icon inside input) -->
+                        <template v-slot:after>
+                            <q-icon name="send" :class="[newMessage.trim() ? 'text-blue-9' : 'text-grey-5']"
+                                :disabled="!newMessage.trim()" :loading="false"
+                                @click="newMessage.trim() && sendMessage(newMessage)" />
+                        </template>
+                    </q-input>
+                </q-card-actions>
+            </div>
+
+
+        </div>
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <!-- Quasar -->
+        <script src="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.umd.prod.js"></script>
+
+        <script>
+            const { createApp } = Vue;
+            const { ref } = Vue;
+
+            createApp({
+                data() {
+                    return {
+                        isMinimized: false,
+                        showChat: true,
+                        chatContainer: ref(null),
+                        showIcon: true,
+                        unreadCount: 1,
+                        newMessage: '',
+                        attachedFiles: [], // store multiple uploaded files
+                        messages: []
+                    }
+                },
+                methods: {
+                    clearChat() {
+                        this.messages = [];
+                        this.newMessage = '';
+                        this.attachedFiles = [];
+                    },
+                    openForms(type) {
+                        var widgetEntityForm = app.getGlobalComponent("widgetEntityForm");
+                        var record = { rowState: 1, entityId: "cl1dWqPym2tmGfJKzDnV3WiX" }
+                        if (type === 'users') {
+                            record = { rowState: 1, entityId: "cl1dWqPym2tmGfJKzDnV3WiX" }
+                            widgetEntityForm.newForm(this, record, "System Users - New", record.entityId, "new");
+                        } else if (type === 'clients') {
+                            record = { rowState: 1, entityId: "c6l186nAXRsP4uaQ2Y8GWNfW" }
+                            widgetEntityForm.newForm(this, record, "Clients - New", record.entityId, "new");
+                        } else if (type === 'FileImportMap') {
+                            record = { rowState: 1, entityId: "c2anoaNGE7iR52IbRJ51VGyS1" }
+                            widgetEntityForm.newForm(this, record, "File Import Map - New", record.entityId, "new");
+                        } else if (type === 'notepad') {
+                            record = { rowState: 1, entityId: "cAoaWa4xLQIjV5HwBEXzWYGUl" }
+                            widgetEntityForm.newForm(this, record, "Notepad - New", record.entityId, "new");
+                        } else if (type === 'cases') {
+                            record = {
+                                rowState: 1, entityId: "cQ8lzxq3MBU8xUpQGlW4EeSl"
+                            }
+                            widgetEntityForm.newForm(this, record, "Cases - New", record.entityId, "new");
+                        }
+                    },
+                    toggleMinimize() {
+                        this.isMinimized = !this.isMinimized;
+                        this.showChat = !this.isMinimized;
+                        console.log("-----------", this.isMinimized, this.showChat)
+                    },
+                    toggleChat() {
+                        console.log("-------++++++++----", this.isMinimized, this.showChat)
+                        this.showChat = !this.showChat;
+                        this.isMinimized = false;
+                    },
+                    openChat() {
+                        this.showChat = true;
+                        this.isMinimized = false;
+                    },
+                    handleFileUpload(event) {
+                        const files = Array.from(event.target.files);
+                        const allowedTypes = [
+                            "application/vnd.ms-excel",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "application/pdf",
+                            "image/png",
+                            "image/jpeg"
+                        ];
+
+                        files.forEach(file => {
+                            if (!allowedTypes.includes(file.type)) {
+                                alert(`Invalid file type: ${file.name}`);
+                                return;
+                            }
+
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const base64Data = reader.result.split(",")[1];
+                                this.attachedFiles.push({
+                                    data: base64Data,
+                                    filename: file.name,
+                                    mimeType: file.type
+                                });
+                            };
+                            reader.readAsDataURL(file);
+                        });
+
+                        // Allow selecting the same file again
+                        this.$refs.fileInput.value = '';
+                    },
+                    removeFile(index) {
+                        this.attachedFiles.splice(index, 1);
+                    },
+                    async sendMessage(quickQuestion = '') {
+                        if (quickQuestion !== '') {
+                            this.newMessage = quickQuestion;
+                        }
+                        const msg = this.newMessage.trim();
+                        if (!msg && !this.attachedFiles.length) return;
+
+                        // Push user message
+                        if (msg) {
+                            this.messages.push({ from: 'user', text: msg, isLoading: false });
+                        }
+                        if (this.attachedFiles.length) {
+                            this.attachedFiles.forEach(file => {
+                                this.messages.push({ from: 'user', text: `[📎 ${file.filename}]`, isLoading: false });
+                            });
+                        }
+                        this.$nextTick(() => this.scrollToBottom());
+
+                        this.newMessage = '';
+                        const botIndex = this.messages.push({
+                            from: 'bot',
+                            text: '',
+                            isLoading: true
+                        }) - 1;
+                        this.scrollToBottom();
+                        // Prepare full conversation for API
+                        const formattedMessages = this.messages.map(m => {
+                            if (m.from === 'user') return { role: 'user', content: m.text };
+                            if (m.from === 'bot' && !m.isLoading) return { role: 'assistant', content: m.text };
+                            return null; // skip loading placeholders
+                        }).filter(Boolean);
+
+                        try {
+                            const res = await fetch('http://localhost:3001/api/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    messages: [
+                                        {
+                                            "role": "system",
+                                            "content": "You are Iris, You are a friendly, helpful assistant for QTIS application. You help users navigate the site, answer FAQs, and guide them to relevant pages. If you don't know something, say you don't know instead of making things up. say you are assistant to the users chatting with you, providing responses with proper alignment, spaces in more readable format which can be interpretted in HTML. You are not just a computer program. Always respond in pure HTML format using <b> for bold and <br> for line breaks. Never use Markdown. Give good detailed answer not just one line"
+                                        },
+                                        ...formattedMessages
+                                    ],
+                                    files: this.attachedFiles,
+                                    summarizeFiles: false,
+                                    temperature: 0,
+                                    max_tokens: 0
+                                })
+                            });
+
+                            const data = await res.json();
+                            const reply = data?.choices?.[0]?.message?.content || "No reply received.";
+                            this.messages[botIndex] = {
+                                from: 'bot',
+                                text: reply,
+                                isLoading: false
+                            };
+
+                            // Reset file list after send
+                            this.attachedFiles = [];
+                            this.$nextTick(() => this.scrollToBottom());
+
+                        } catch (err) {
+                            console.error('Error calling API:', err);
+                            this.messages.push({ from: 'bot', text: 'Sorry, there was an error processing your request.', isLoading: false });
+                        }
+                    },
+                    scrollToBottom() {
+                        console.log("scrolling to bottom")
+                        const container = this.$refs.chatContainer?.$el;
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    }
+                }
+
+            })
+                .use(Quasar)
+                .mount("#q-app");
+        </script>
+
+</body>
+
+</html>

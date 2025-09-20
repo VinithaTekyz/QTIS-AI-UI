@@ -315,7 +315,6 @@ Vue.component('cnx-chat-ai', {
 			// Push bot loading message
 			// store index of the bot message
 
-
 			var parameters = {
 				messages: [
 					{

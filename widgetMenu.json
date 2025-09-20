@@ -1,0 +1,619 @@
+[
+    {
+        "label": {
+            "default": "Home"
+        },
+        "icon": "home",
+        "customTags": "${mi.getCustomTags()}",
+        "id": "home",
+        "accessFunctionId": "widgets.cR5xGWEV82sVIwNd0dPgpuP",
+        "hasChildren": false,
+        "url": "cEM8EedQE5uXxuy0w5EwM0iM",
+        "visible": true
+    },
+    {
+        "label": {
+            "default": "Send & Request"
+        },
+        "icon": "send",
+        "customTags": "${mi.getCustomTags()}",
+        "id": "sendrequest",
+        "accessFunctionId": "widgets.cpbak5PX8XcN0HlG88MxK0T5",
+        "hasChildren": false,
+        "url": "cpbak5PX8XcN0HlG88MxK0T5",
+        "visible": true
+    },
+    {
+        "label": {
+            "default": "Case Files"
+        },
+        "icon": "work_outline",
+        "customTags": "${mi.getCustomTags()}",
+        "id": "casefiles",
+        "accessFunctionId": "entities.cwJP6e4lMwipboSmZ25Q5lVTJ",
+        "hasChildren": false,
+        "entityInfo": {
+            "label": "Case Files",
+            "typeId": "cwJP6e4lMwipboSmZ25Q5lVTJ",
+            "subTypes": [
+                {
+                    "resourceId": "caseassignment",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "cKgE4ljdGjtxjI0z3X5KLDU8",
+                    "label": "Case Assignment",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                },
+                {
+                    "resourceId": "dailyupdates",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "cAoEQAjKmjIqRtwQ26QadeFX",
+                    "label": "Daily Updates",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                },
+                {
+                    "resourceId": "newnotepad",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "cAoaWa4xLQIjV5HwBEXzWYGUl",
+                    "label": "Notepad",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                },
+                {
+                    "resourceId": "notestab",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "cWbEz03oadsmqNSXD2Z45Z8tj",
+                    "label": "Notes Tab",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                },
+                {
+                    "resourceId": "documentstab",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "cl0bXkdwEYUGDs6pk8KN03Cnd",
+                    "label": "Documents Tab",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                },
+                {
+                    "resourceId": "exhibitstab",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "c6llKlVNxZIlkUaambzVybuy",
+                    "label": "Exhibits Tab",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                },
+                {
+                    "resourceId": "videostabkf100833",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "c11p51EAdGiK8I7b35n84mUL",
+                    "label": "Emails Tab",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                },
+                {
+                    "resourceId": "videostab",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "cwJP6e4lMwi51tmZ26YGJPuqK",
+                    "label": "Videos Tab ",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                },
+                {
+                    "resourceId": "invoicestab",
+                    "customTags": null,
+                    "color": null,
+                    "icon": "work_outline",
+                    "typeId": "cnjwo20Z5mHnEsYGXwY4k8HyK",
+                    "label": "Invoices Tab",
+                    "navMenu": {
+                        "id": "casefiles",
+                        "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+                    }
+                }
+            ],
+            "customTags": "#cascadeupdate #audittrail #requirescase #includeincasesearch #includeinglobalsearch",
+            "searchWidgetId": "cGeBm2xAw1TVDViMqdYqjQlfN",
+            "icon": "work_outline",
+            "navMenu": {
+                "id": "casefiles",
+                "url": "c02xE3wj3bCxoSJR6we3gVhX7"
+            }
+        },
+        "url": "c02xE3wj3bCxoSJR6we3gVhX7",
+        "visible": true
+    },
+    {
+        "label": {
+            "default": "Calendar"
+        },
+        "icon": "insert_invitation",
+        "customTags": "${mi.getCustomTags()}",
+        "id": "calendar",
+        "accessFunctionId": "entities.cGDxMDYLmPUjDJczbxeZo0KtY",
+        "hasChildren": false,
+        "entityInfo": {
+            "label": "Calendar Event",
+            "typeId": "cGDxMDYLmPUjDJczbxeZo0KtY",
+            "customTags": "#includeincasesearch #audittrail",
+            "searchWidgetId": "cgjexjVdNDH2RxHnpdDV24PHy",
+            "icon": "insert_invitation",
+            "navMenu": {
+                "id": "calendar",
+                "url": "c4M7B2gx1LFQfBeZp117XFa"
+            }
+        },
+        "url": "c4M7B2gx1LFQfBeZp117XFa",
+        "visible": true
+    },
+    {
+        "label": {
+            "default": "Administrator"
+        },
+        "icon": "admin_panel_settings",
+        "customTags": "#multi-form",
+        "id": "administrator",
+        "accessFunctionId": "menus.cQ8lNAg2xZUkSpQ1mX5qaIl",
+        "hasChildren": true,
+        "children": [
+            {
+                "label": {
+                    "default": "Clients"
+                },
+                "url": "cwJPk7Qd8aH7lhmZK6X3kjtq",
+                "icon": "engineering",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "clients",
+                "parentId": "administrator",
+                "accessFunctionId": "entities.c6l186nAXRsP4uaQ2Y8GWNfW",
+                "entityInfo": {
+                    "label": "Client",
+                    "typeId": "c6l186nAXRsP4uaQ2Y8GWNfW",
+                    "customTags": "",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "engineering",
+                    "navMenu": {
+                        "id": "clients",
+                        "parentId": "administrator",
+                        "url": "cwJPk7Qd8aH7lhmZK6X3kjtq"
+                    }
+                },
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Case Management"
+                },
+                "url": "ckNmbeg2d7H5zhMlzxbgk2TQ",
+                "icon": "assignment_ind",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "casemanagement",
+                "parentId": "administrator",
+                "accessFunctionId": "entities.cQ8lzxq3MBU8xUpQGlW4EeSl",
+                "entityInfo": {
+                    "label": "Case",
+                    "typeId": "cQ8lzxq3MBU8xUpQGlW4EeSl",
+                    "customTags": "#includeincasesearch",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "assignment_ind",
+                    "navMenu": {
+                        "id": "casemanagement",
+                        "parentId": "administrator",
+                        "url": "ckNmbeg2d7H5zhMlzxbgk2TQ"
+                    }
+                },
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Role Assignment"
+                },
+                "url": "ceGAxwz1KRiRJI5PB6NQmDCb",
+                "icon": "badge",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "roleassignment",
+                "parentId": "administrator",
+                "accessFunctionId": "entities.cbmKMZMzL5udA7InwzkyJJ5S8",
+                "entityInfo": {
+                    "label": "Case User Assignment",
+                    "typeId": "cbmKMZMzL5udA7InwzkyJJ5S8",
+                    "customTags": "",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "badge",
+                    "navMenu": {
+                        "id": "roleassignment",
+                        "parentId": "administrator",
+                        "url": "ceGAxwz1KRiRJI5PB6NQmDCb"
+                    }
+                },
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Roles Management"
+                },
+                "url": "cYq4Np5WjACyHGdKJ82MMu0",
+                "icon": "contacts",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "rolesmanagement",
+                "parentId": "administrator",
+                "accessFunctionId": "entities.cjjBJy46WLslukP4xJ6DRuA",
+                "entityInfo": {
+                    "label": "System Role",
+                    "typeId": "cjjBJy46WLslukP4xJ6DRuA",
+                    "customTags": "",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "contacts",
+                    "navMenu": {
+                        "id": "rolesmanagement",
+                        "parentId": "administrator",
+                        "url": "cYq4Np5WjACyHGdKJ82MMu0"
+                    }
+                },
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Department"
+                },
+                "url": "cx10db8wq7FRbtgJA6Pm4JfR",
+                "icon": "corporate_fare",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "department",
+                "parentId": "administrator",
+                "accessFunctionId": "entities.cQ8lzxq3MBU8YUpQGlbPxMil",
+                "entityInfo": {
+                    "label": "Department",
+                    "typeId": "cQ8lzxq3MBU8YUpQGlbPxMil",
+                    "customTags": "#includeincasesearch",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "corporate_fare",
+                    "navMenu": {
+                        "id": "department",
+                        "parentId": "administrator",
+                        "url": "cx10db8wq7FRbtgJA6Pm4JfR"
+                    }
+                },
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Users"
+                },
+                "url": "cBKP3jWPz7I1Gs42ElweB2fj",
+                "icon": "manage_accounts",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "users",
+                "parentId": "administrator",
+                "accessFunctionId": "entities.cl1dWqPym2tmGfJKzDnV3WiX",
+                "entityInfo": {
+                    "label": "System User",
+                    "typeId": "cl1dWqPym2tmGfJKzDnV3WiX",
+                    "customTags": "",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "manage_accounts",
+                    "navMenu": {
+                        "id": "users",
+                        "parentId": "administrator",
+                        "url": "cBKP3jWPz7I1Gs42ElweB2fj"
+                    }
+                },
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "User Activity Log"
+                },
+                "url": "cV8Rwe1y7nUjbu1y7mAM7oiP",
+                "icon": "engineering",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "useractivitylog",
+                "parentId": "administrator",
+                "accessFunctionId": "widgets.cXaVdobPMPCppTBE3GYQgWcp",
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Audit Trail"
+                },
+                "url": "cm1JxnNB2zim1TaAGxy7V0T7",
+                "icon": "recent_actors",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "audittrail",
+                "parentId": "administrator",
+                "accessFunctionId": "widgets.cV8Rwe1y7nUjbu1y7mAM7oiP",
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Lists"
+                },
+                "url": "https://clientportal.qtis.us/zinatt/webapps/qtis/qtismaster",
+                "icon": "format_list_numbered",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "lists",
+                "parentId": "administrator",
+                "accessFunctionId": "menus.cx1jGEwg82H6bbFgNgdnK3eIq",
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "File Import Maps"
+                },
+                "url": "cw14N1zL6DT73ZhYdB35ZWJtK",
+                "icon": "publish",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "fileimportmaps",
+                "parentId": "administrator",
+                "accessFunctionId": "entities.c2anoaNGE7iR52IbRJ51VGyS1",
+                "entityInfo": {
+                    "label": "File Import Map",
+                    "typeId": "c2anoaNGE7iR52IbRJ51VGyS1",
+                    "customTags": "",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "publish",
+                    "navMenu": {
+                        "id": "fileimportmaps",
+                        "parentId": "administrator",
+                        "url": "cw14N1zL6DT73ZhYdB35ZWJtK"
+                    }
+                },
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Import Tasks"
+                },
+                "url": "c1VkmWP3aaugNI6A1jRGJ5uA",
+                "icon": "import_export",
+                "customTags": "${cmi.getCustomTags()} #multi-form",
+                "id": "importtasks",
+                "parentId": "administrator",
+                "accessFunctionId": "widgets.c1VkmWP3aaugNI6A1jRGJ5uA",
+                "visible": true
+            }
+        ],
+        "visible": true
+    },
+    {
+        "label": {
+            "default": "Client Billing"
+        },
+        "icon": "account_balance_wallet",
+        "customTags": "#multiform",
+        "id": "clientbilling",
+        "accessFunctionId": "menus.c6lQnNjxNecGmhaRPJpbPmcyp11",
+        "hasChildren": true,
+        "children": [
+            {
+                "label": {
+                    "default": "Services"
+                },
+                "url": "cDe5xJzzlBcVRup2w4gLLNTN",
+                "icon": "fact_check",
+                "customTags": "${cmi.getCustomTags()} #multiform",
+                "id": "services",
+                "parentId": "clientbilling",
+                "accessFunctionId": "entities.c6l2ddeYxYtPjJhaXbojEensW",
+                "entityInfo": {
+                    "label": "Services",
+                    "typeId": "c6l2ddeYxYtPjJhaXbojEensW",
+                    "customTags": "#cascadeupdate #audittrail #includeincasesearch",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "fact_check",
+                    "navMenu": {
+                        "id": "services",
+                        "parentId": "clientbilling",
+                        "url": "cDe5xJzzlBcVRup2w4gLLNTN"
+                    }
+                },
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Expenses"
+                },
+                "url": "c3eK5DqDedHPowuNd3Byl0VHd",
+                "icon": "local_atm",
+                "customTags": "${cmi.getCustomTags()} #multiform",
+                "id": "expenses",
+                "parentId": "clientbilling",
+                "accessFunctionId": "entities.c21qPP6JdJHRB5TAxW81Q07iz",
+                "entityInfo": {
+                    "label": "Expenses",
+                    "typeId": "c21qPP6JdJHRB5TAxW81Q07iz",
+                    "customTags": "#cascadeupdate #audittrail #includeincasesearch",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "local_atm",
+                    "navMenu": {
+                        "id": "expenses",
+                        "parentId": "clientbilling",
+                        "url": "c3eK5DqDedHPowuNd3Byl0VHd"
+                    }
+                },
+                "visible": true
+            }
+        ],
+        "visible": true
+    },
+    {
+        "label": {
+            "default": "My Timesheet"
+        },
+        "icon": "pending_actions",
+        "customTags": "",
+        "id": "mytimesheet",
+        "accessFunctionId": "menus.c6lQnNjxNecGmhaRPJpbPmcyp14",
+        "hasChildren": true,
+        "children": [
+            {
+                "label": {
+                    "default": "Time Sheet"
+                },
+                "url": "cazBGANNKkf6lu65021ekZsYZ",
+                "icon": "access_time",
+                "customTags": "${cmi.getCustomTags()} ",
+                "id": "timesheet",
+                "parentId": "mytimesheet",
+                "accessFunctionId": "entities.cj1GZZex0xH1A4InB7jZkbDIE",
+                "entityInfo": {
+                    "label": "Time Sheets",
+                    "typeId": "cj1GZZex0xH1A4InB7jZkbDIE",
+                    "customTags": "#cascadeupdate #audittrail #includeincasesearch",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}",
+                    "icon": "access_time",
+                    "navMenu": {
+                        "id": "timesheets",
+                        "parentId": "admintimesheet",
+                        "url": "cazBGANNKkf6lu65021ekZsYZ"
+                    }
+                },
+                "visible": true
+            }
+        ],
+        "visible": true
+    },
+    {
+        "label": {
+            "default": "Admin Timesheet"
+        },
+        "icon": "hourglass_bottom",
+        "customTags": "${mi.getCustomTags()}",
+        "id": "admintimesheet",
+        "accessFunctionId": "menus.c6lQnNjxNecGmhaRPJpbPmcyp15",
+        "hasChildren": true,
+        "children": [
+            {
+                "label": {
+                    "default": "Time Sheets"
+                },
+                "url": "cazBGANNKkf6lu65021ekZsYZ",
+                "icon": "access_time",
+                "customTags": "${cmi.getCustomTags()} ${mi.getCustomTags()}",
+                "id": "timesheets",
+                "parentId": "admintimesheet",
+                "accessFunctionId": "entities.cj1GZZex0xH1A4InB7jZkbDIE",
+                "entityInfo": {
+                    "label": {
+                        "$loader": {
+                            "className": "com.contineonx.core.common.MultiLocaleValue"
+                        },
+                        "default": "Time Sheets",
+                        "tenantPath": "zinatt/"
+                    },
+                    "typeId": "cj1GZZex0xH1A4InB7jZkbDIE",
+                    "customTags": "#cascadeupdate #audittrail #includeincasesearch",
+                    "searchWidgetId": "${mi.getEntity().getListWidgetItemId()}"
+                },
+                "visible": true
+            }
+        ],
+        "visible": true
+    },
+    {
+        "label": {
+            "default": "Help"
+        },
+        "icon": "help",
+        "customTags": "${mi.getCustomTags()}",
+        "id": "help",
+        "accessFunctionId": "menus.cn60WQ6wRwInP3SQPlqqW2piQ",
+        "hasChildren": true,
+        "children": [
+            {
+                "label": {
+                    "default": "Getting Started"
+                },
+                "url": "",
+                "icon": "thumb_up",
+                "customTags": "https://gettingstarted.qtis.us/ ${mi.getCustomTags()}",
+                "id": "gettingstarted",
+                "parentId": "help",
+                "accessFunctionId": "widgets.",
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "FAQs"
+                },
+                "url": "",
+                "icon": "quiz",
+                "customTags": "https://zinatt.com/FAQs/ ${mi.getCustomTags()}",
+                "id": "faqs",
+                "parentId": "help",
+                "accessFunctionId": "widgets.",
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Submit IT Ticket"
+                },
+                "url": "",
+                "icon": "description",
+                "customTags": "https://www.zinatt.com/technical-support-ticket/ ${mi.getCustomTags()}",
+                "id": "submititticket",
+                "parentId": "help",
+                "accessFunctionId": "menus.c7NWp2D6AjH8dsbKKR8A6MUDp13",
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Contact Us"
+                },
+                "url": "",
+                "icon": "local_phone",
+                "customTags": "https://www.zinatt.com/contact/ ${mi.getCustomTags()}",
+                "id": "contactus",
+                "parentId": "help",
+                "accessFunctionId": "menus.cx1jGEwg82H6bbFgNgdnK3eIq",
+                "visible": true
+            },
+            {
+                "label": {
+                    "default": "Tech Support Chat"
+                },
+                "url": "",
+                "icon": "support_agent",
+                "customTags": "https://www.tidio.com/talk/pwysmxl0dg4tronssnmpicrlhln5bj59 ${mi.getCustomTags()}",
+                "id": "techsupportchat",
+                "parentId": "help",
+                "accessFunctionId": "menus.cqG82XGPXbHnb7CgVGJy7qnCw",
+                "visible": true
+            }
+        ],
+        "visible": true
+    }
+]

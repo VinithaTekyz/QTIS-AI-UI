@@ -3,50 +3,101 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Quasar + Vue Chatbot</title>
+  <title>Quasar + Vue AI Rewrite</title>
   <!-- Quasar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.prod.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <style>
-    .editor-container {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-    }
-
-    .floating-icon {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      z-index: 10;
-    }
-  </style>
 </head>
 
 <body class="q-pa-md">
   <div id="q-app">
+    <img src="https://res.cloudinary.com/dn7ejk1ei/image/upload/v1757864421/image_2_1_prdwfg.png" alt="WhatsApp Video 2025 09 14 at 20.38.55" border="0">
     <div class="q-pa-md q-gutter-sm">
-      <div class="editor-container">
-        <q-editor v-model="editor" @input="debouncedAISuggestions" min-height="5rem"></q-editor>
-
-        <!-- Floating Icon with Popup -->
-        <div class="floating-icon">
-          <q-btn round dense color="primary" icon="lightbulb_outline" size="sm">
-            <q-tooltip>AI Suggestions</q-tooltip>
-
-            <!-- Attach Menu to Button -->
-            <q-menu anchor="top end" self="bottom end" :offset="[0, 5]" :cover="false">
-              <q-card style="min-width: 200px;">
-                <q-card-section>
-                  <div class="text-h6">AI Suggestions</div>
-                  <div class="text-caption" v-html="suggestedText"></div>
-                </q-card-section>
-              </q-card>
-            </q-menu>
-          </q-btn>
+      <!-- Entities list -->
+      <div v-if="parsedEntities.length === 0">No entities found. Please try again.</div>
+      <div v-for="(entity, index) in parsedEntities" :key="index"
+        class="q-mb-sm row items-center no-wrap justify-between"
+        style="border: 0.1px solid #808080b0; padding: 8px; border-radius: 10px;">
+        <div class="row items-center no-wrap">
+          <div class="q-mt-sm" style="margin-right: 10px;">
+            <q-icon name="today" />
+          </div>
+          <div>
+            <q-badge transparent style="background: #bdddfd52; border-color: #1976d2; color: #1976d2;"
+              class="q-mr-sm">{{
+              entity.type }}</q-badge>
+            <br />
+            <span v-if="entity.type === 'users'">
+              <template v-if="entity.fields.firstName || entity.fields.lastName">
+                {{ entity.fields.firstName || "" }} {{ entity.fields.lastName || "" }}
+              </template>
+              <template v-else>
+                New User
+              </template>
+              <div>
+                <small style="color: #555;">{{ entity.fields.email || "" }}</small>
+              </div>
+            </span>
+            <span v-else-if="entity.type === 'clients'">
+              <template v-if="entity.fields.firstName || entity.fields.lastName">
+                <b>{{ entity.fields.firstName || '' }} {{ entity.fields.lastName || '' }}</b>
+              </template>
+              <template v-else>
+                <b>New Client</b>
+              </template>
+            </span>
+            <span v-else-if="entity.type === 'cases'">
+              <b>New Case - {{entity.fields.caseNumber || 'New Case'}}</b>
+            </span>
+            <span v-else-if="entity.type === 'department'">
+              Department: <b>{{ entity.fields.name || 'New Department' }}</b>
+            </span>
+            <span v-else-if="entity.type === 'notepad'">
+              Notes: <b>{{entity.fields.notes.substring(0, 30)}}...</b>
+            </span>
+          </div>
+        </div>
+        <!-- Create Button -->
+        <div class="q-mt-sm">
+          <q-btn round color="primary" icon="add" size="sm" />
         </div>
       </div>
     </div>
+
+    <q-editor v-model="editor" :definitions="editorDefinitions" :toolbar="editorToolbar" min-height="5rem">
+      <template v-slot:rewrite="scope">
+        <q-btn v-bind="scope.btnProps" :disable="loading" class="relative-position">
+          <q-icon name="auto_awesome" v-if="!loading" />
+          <q-spinner-dots size="16px" color="primary" v-else />
+        </q-btn>
+      </template>
+    </q-editor>
+
+    <!-- AI Rewrite Dialog -->
+    <q-dialog v-model="showDialog" persistent>
+      <q-card style="min-width: 350px; max-width: 600px;">
+        <q-card-section>
+          <div class="text-h6">AI Rewrite</div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section>
+          <div v-if="loading" class="row justify-center q-my-md">
+            <q-spinner-dots size="2em" color="primary" />
+          </div>
+          <div v-else v-html="suggestedText"></div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="secondary" v-close-popup />
+          <q-btn flat label="Apply" color="primary" @click="applySuggestion" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </div>
   </div>
 
   <!-- Vue -->
@@ -55,58 +106,77 @@
   <script src="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.umd.prod.js"></script>
 
   <script>
-    const { createApp, ref } = Vue;
+    const { createApp } = Vue;
+    const { Quasar } = window;
 
     createApp({
       data() {
         return {
           editor: '',
+          showDialog: false,
           suggestedText: '',
+          loading: false,
+          editorToolbar: [
+            ['bold', 'italic', 'underline'],
+            ['rewrite']
+          ],
+          parsedEntities: [
+            {
+              "type": "users",
+              "fields": {
+                "firstName": "vicky",
+                "lastName": "kumar",
+                "email": "vignesh@gmail.com"
+              }
+            },
+            {
+              "type": "clients",
+              "fields": {
+                "count": 2
+              }
+            }
+          ]
+        }
+      },
+      computed: {
+        editorDefinitions() {
+          return {
+            rewrite: {
+              tip: 'Rewrite Text',
+              label: 'Rewrite with AI',
+              round: true,
+              color: 'primary',
+              handler: () => {
+                this.showDialog = true;
+                this.loading = true;
+                this.suggestedText = '';
+                this.getAISuggestions();
+              }
+            }
+          }
         }
       },
       methods: {
         async getAISuggestions() {
-          console.log("Fetching AI Suggestions...");
-          // Your API call logic goes here
           try {
-            const res = await fetch('http://localhost:3001/api/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'accept': 'application/json',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                messages: [
-                  {
-                    "role": "system",
-                    "content": "You help users to frame their notes in a better way by reframing responses with proper alignment, emojis and spaces in more readable format.Always respond in pure HTML format using <b> for bold and <br> for line breaks."
-                  },
-                  { role: 'user', content: this.editor }
-                ],
-                files: [],
-                summarizeFiles: false,
-                temperature: 0,
-                max_tokens: 0
-              })
-            });
-
-            const data = await res.json();
-            this.suggestedText = data?.choices?.[0]?.message?.content || "No reply received.";
-
-            console.log(this.suggestedText);
+            // Mock API delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            this.suggestedText = "<b>Improved:</b><br> This is the AI rewritten version of your text ✨";
           } catch (error) {
-            console.error('Error fetching AI suggestions:', error);
+            this.suggestedText = "❌ Failed to get AI suggestion.";
+          } finally {
+            this.loading = false;
           }
         },
-        debouncedAISuggestions() {
-          clearTimeout(this.debounceTimer);
-          this.debounceTimer = setTimeout(() => {
-            this.getAISuggestions();
-          }, 1000); // adjust delay (500ms) as needed
+        applySuggestion() {
+          if (this.suggestedText) {
+            this.editor = this.suggestedText;
+          }
+          this.showDialog = false;
         }
       }
     })
-      .use(Quasar)
+      .use(Quasar)   <!-- ✅ Ensure Quasar is mounted -->
       .mount("#q-app");
   </script>
 </body>

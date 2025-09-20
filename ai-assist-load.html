@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>QEditor custom cmd loader</title>
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.prod.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    .inline-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(0,0,0,0.18);
+      border-top-color: #1976d2;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin-left: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg);} }
+  </style>
+</head>
+<body class="q-pa-md">
+  <div id="q-app">
+    <q-editor
+      ref="editor"
+      v-model="text"
+      :toolbar="toolbar"
+      :definitions="definitions"
+      min-height="5rem"
+    />
+
+    <div class="q-mt-md text-caption">
+      Click the rewrite button → watch spinner appear for 2s.
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.umd.prod.js"></script>
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          text: 'Some text to rewrite…',
+          loading: false,
+          toolbar: [
+            ['bold', 'italic'],
+            ['rewrite'] // custom button key
+          ]
+        };
+      },
+      computed: {
+        definitions() {
+          return {
+            rewrite: {
+              tip: 'Rewrite with AI',
+              icon: 'auto_awesome',
+              label: 'Rewrite',
+              color: 'primary',
+              round: true,
+              // custom command (won’t run execCommand since it’s unknown)
+              cmd: 'rewrite',   
+              param: '',        
+              handler: () => {
+                // fallback if you prefer handler approach
+                this.triggerRewrite();
+              }
+            }
+          };
+        }
+      },
+      mounted() {
+        // listen for custom command events emitted by QEditor
+        this.$refs.editor.$on('cmd', ({ cmd, param }) => {
+          if (cmd === 'rewrite') {
+            this.triggerRewrite();
+          }
+        });
+      },
+      methods: {
+        triggerRewrite() {
+          this.loading = true;
+          // add spinner element to button
+          this.$nextTick(() => {
+            const btn = this.$el.querySelector('.q-editor__toolbar button[aria-label="Rewrite with AI"]');
+            if (btn && !btn.querySelector('.inline-spinner')) {
+              const sp = document.createElement('span');
+              sp.className = 'inline-spinner';
+              btn.appendChild(sp);
+            }
+          });
+
+          // simulate API delay
+          setTimeout(() => {
+            this.text = '✨ AI rewritten text here!';
+            this.loading = false;
+            const sp = this.$el.querySelector('.inline-spinner');
+            if (sp) sp.remove();
+          }, 2000);
+        }
+      }
+    })
+    .use(Quasar)
+    .mount('#q-app');
+  </script>
+</body>
+</html>

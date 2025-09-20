@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Quasar + Vue Chatbot</title>
+    <!-- Quasar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.prod.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        .custom-msg .q-message-text:last-child {
+            min-height: unset !important;
+        }
+
+        .custom-msg p {
+            margin: 0 !important;
+        }
+
+        .custom-field .q-field__control {
+            background: white !important;
+        }
+
+        .custom-msg .q-message-text:last-child {
+            min-height: unset !important;
+        }
+
+        .chat-container .q-item__section--avatar {
+            min-width: 0;
+        }
+
+        .chat-container .q-item {
+            min-height: 30px !important;
+        }
+
+        .custom-msg .q-message-text:last-child {
+            min-height: unset !important;
+        }
+
+        .custom-msg p {
+            margin: 0 !important;
+        }
+
+        .custom-field .q-field__control {
+            background: white !important;
+        }
+
+        .chat-container {
+            padding-top: 8px;
+        }
+
+        .messages {
+            width: 100%;
+            /* Use full width for proper alignment */
+            max-width: 70%;
+            /* Limit the content width */
+            margin: 0 auto;
+            /* Center block within chat container */
+            overflow-y: auto;
+        }
+
+        .msg-row {
+            display: flex;
+            margin: 4px 0;
+            width: 100%;
+        }
+
+        .user-row {
+            justify-content: flex-end;
+            /* Push user bubbles to the right */
+        }
+
+        .bot-row {
+            justify-content: flex-start;
+            /* Push bot bubbles to the left */
+        }
+
+        .bubble {
+            max-width: 70%;
+            /* Limit bubble width */
+            padding: 6px 10px;
+            border-radius: 12px;
+            word-break: break-word;
+        }
+
+        .user-bubble {
+            max-width: 75%;
+            align-self: flex-end;
+            background-color: #f7f7f8;
+            color: black;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border-top-right-radius: 4px;
+            line-height: 1.4;
+            font-size: 15px;
+            word-wrap: break-word;
+            margin: 4px 0;
+        }
+
+        .bot-bubble {
+            max-width: 90%;
+            align-self: flex-start;
+            /* background-color: #f7f7f8; */
+            color: #2d2d2d;
+            padding: 10px 14px;
+            /* border-radius: 16px; */
+            /* border-top-left-radius: 4px; */
+            line-height: 1.4;
+            font-size: 15px;
+            word-wrap: break-word;
+            margin: 4px 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body class="q-pa-md">
+    <div id="q-app">
+        <div v-if="isMinimized">
+            <q-dialog @click.stop v-model="isMinimized" position="bottom-right" transition-hide="slide-up" persistent
+                no-focus seamless transition-show="slide-down" transition-duration="200"
+                style="z-index:20;position: fixed !important; bottom: 10px !important; right: 10px !important; top: auto !important; left: auto !important; margin: 0 !important; align-items: flex-end !important; justify-content: flex-end !important;">
+                <q-card
+                    style="position: fixed; bottom:50px; right:10px; width: 200px; height: 50px; display: flex; align-items: center; justify-content: space-between !important; padding: 0 8px; border-radius: 15px;">
+                    <!-- Header with close button -->
+                    <div>QTIS AI</div>
+                    <div style="display: flex;">
+                        <div>
+                            <q-btn dense flat round :icon="isMinimized ? 'expand_less' : 'expand_more'" color="grey-7"
+                                @click="toggleMinimize" />
+                        </div>
+                        <q-btn dense flat round icon="close" color="grey-7" @click="toggleChat" />
+                    </div>
+                </q-card>
+
+            </q-dialog>
+        </div>
+        </template>
+        <template v-if="showChat">
+            <div :style="{
+				height: isFullScreen ? '80vh' : '50vh',
+				display: 'flex',
+				flexDirection: 'column',
+				backgroundColor: '#e8f0f9',
+				alignItems: 'center',
+                boxShadow: '0 -2px 6px rgba(0, 0, 0, 0.1)'
+			}">
+                <!-- Header with close button -->
+                <!-- Sticky Header with Title, Menu, and Close -->
+                <div style="
+                    position: sticky;
+                    top: 0;
+                    width: 100%;
+                    background:'#e8f0f9';
+                    z-index: 10;
+                    ">
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 8px 14px;
+                        ">
+                        <!-- Title on the left -->
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <q-btn dense flat style="border-radius: 10px; padding-left: 15px; padding-right: 10px;"
+                                :label="currentMode" icon-right="expand_more" color="black" size="md">
+                                <q-menu auto-close transition-show="jump-down" transition-hide="jump-up">
+                                    <q-list style="min-width:160px">
+                                        <q-item clickable v-ripple @click="setMode('assistant')">
+                                            <q-item-section>QTIS AI Assistant</q-item-section>
+                                        </q-item>
+                                        <q-item clickable v-ripple @click="setMode('training')">
+                                            <q-item-section>QTIS AI Training Mode</q-item-section>
+                                        </q-item>
+                                    </q-list>
+                                </q-menu>
+                            </q-btn>
+                        </div>
+                        <!-- Actions on the right -->
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <!-- Three-Dot Menu -->
+                            <q-btn dense flat round icon="more_vert" color="grey-7">
+                                <q-menu auto-close>
+                                    <q-list style="min-width: 120px">
+                                        <q-item clickable v-ripple @click="toggleFullScreen">
+                                            <q-item-section avatar>
+                                                <q-icon :name="isFullScreen ? 'fullscreen_exit' : 'fullscreen'" />
+                                            </q-item-section>
+                                            <q-item-section>{{ isFullScreen ? 'Exit Fullscreen' : 'Fullscreen'
+                                                }}</q-item-section>
+                                        </q-item>
+                                        <q-item clickable v-ripple @click="toggleMinimize">
+                                            <q-item-section avatar>
+                                                <q-icon :name="isMinimized ? 'expand_less' : 'expand_more'" />
+                                            </q-item-section>
+                                            <q-item-section>{{ isMinimized ? 'Expand' : 'Minimize' }}</q-item-section>
+                                        </q-item>
+                                        <q-item clickable v-ripple @click="clearChat">
+                                            <q-item-section avatar>
+                                                <q-icon name="delete" />
+                                            </q-item-section>
+                                            <q-item-section>Clear Chat</q-item-section>
+                                        </q-item>
+                                    </q-list>
+                                </q-menu>
+                            </q-btn>
+
+                            <!-- Close Button -->
+                            <q-btn dense flat round icon="close" color="grey-7" @click="toggleChat" />
+                        </div>
+                    </div>
+
+                    <!-- Separator -->
+                    <q-separator />
+                </div>
+
+
+                <div :style="{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        backgroundColor: '#e8f0f9',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: isFullScreen ? '80vh' : '50vh' // match parent height
+                    }" :class="messages.length === 0 ? 'justify-center chat-container' : 'chat-container'">
+                    <!-- Messages -->
+                    <q-card-section class="messages" :style="{ height: messages.length ? '100%' : 'unset' }">
+                        <template v-for="(msg, index) in messages" :key="index">
+                            <!-- User message -->
+                            <div v-if="msg.from === 'user'" class="msg-row user-row">
+                                <div class="bubble user-bubble" v-html="msg.text"></div>
+                            </div>
+
+                            <!-- Bot message -->
+                            <div v-if="msg.from === 'bot'" class="msg-row bot-row">
+                                <template v-if="msg.isLoading">
+                                    <q-spinner-dots size="1rem" />
+                                </template>
+                                <template v-else>
+                                    <div class="bubble bot-bubble" v-html="msg.text"></div>
+                                </template>
+                            </div>
+                        </template>
+                    </q-card-section>
+
+                    <!-- Quick Access -->
+                    <div v-if="messages.length === 0" style="width:70%; text-align:center; margin-bottom:8px;">
+                        <p style="font-size: larger; margin:0; color:#212121; font-weight:bold; display:inline-block;">
+                            Hello! How can I assist you today?</p>
+                    </div>
+
+                    <q-card-section v-if="attachedFiles.length" class="q-pt-none" style="padding-bottom: 0px !important;">
+                        <div class="row" style="gap:6px; flex-wrap:wrap;">
+                            <q-chip v-for="(f, idx) in attachedFiles" :key="idx" outline removable
+                                @remove="removeFile(idx)" text-color="grey-8" size="sm" :label="f.filename">
+                            </q-chip>
+                        </div>
+                    </q-card-section>
+
+                    <!-- Chat input (composer) -->
+                    <q-card-actions align="center" class="q-pa-sm bg-grey-2 custom-field"
+                        style="gap:6px; border-top:1px solid #eee; width:70%; background-color: #e8f0f9 !important;">
+                        <q-input outlined dense autogrow rounded class="col" v-model="newMessage"
+                            placeholder="What would you like Qtis assist to help with…"
+                            @keyup.enter="sendMessage(newMessage)"
+                            :input-style="{ maxHeight: '120px', overflowY: 'auto' }">
+                            <!-- Left slot: Dropdown menu -->
+                            <template v-slot:prepend>
+                                <q-btn dense flat round icon="add" color="grey-7">
+                                    <q-menu auto-close>
+                                        <q-list style="min-width:150px">
+                                            <!-- Upload File -->
+                                            <q-item clickable v-ripple @click="$refs.fileInput.click()">
+                                                <q-item-section avatar><q-icon name="upload" /></q-item-section>
+                                                <q-item-section>Upload File</q-item-section>
+                                            </q-item>
+                                            <hr style="width:85%; background-color: #9ea2a5;" />
+                                            <!-- User -->
+                                            <q-item clickable v-ripple
+                                                :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
+                                                @click="getAiAssist('users')">
+                                                <q-item-section avatar><q-icon name="person_add" /></q-item-section>
+                                                <q-item-section>User</q-item-section>
+                                                <q-item-section side v-if="aiAssistUserLoading">
+                                                    <q-spinner-gears size="25px" color="primary" />
+                                                </q-item-section>
+                                            </q-item>
+                                            <!-- Client -->
+                                            <q-item clickable v-ripple
+                                                :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
+                                                @click="getAiAssist('clients')">
+                                                <q-item-section avatar><q-icon name="groups" /></q-item-section>
+                                                <q-item-section>Client</q-item-section>
+                                                <q-item-section side v-if="aiAssistClientLoading">
+                                                    <q-spinner-gears size="25px" color="primary" />
+                                                </q-item-section>
+                                            </q-item>
+                                            <!-- Notes -->
+                                            <q-item clickable v-ripple
+                                                :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
+                                                @click="getAiAssist('notepad')">
+                                                <q-item-section avatar><q-icon name="note_add" /></q-item-section>
+                                                <q-item-section>Notes</q-item-section>
+                                                <q-item-section side v-if="aiAssistNoteLoading">
+                                                    <q-spinner-gears size="25px" color="primary" />
+                                                </q-item-section>
+                                            </q-item>
+                                            <!-- Case -->
+                                            <q-item clickable v-ripple
+                                                :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
+                                                @click="getAiAssist('cases')">
+                                                <q-item-section avatar><q-icon name="folder_open" /></q-item-section>
+                                                <q-item-section>Case</q-item-section>
+                                                <q-item-section side v-if="aiAssistCaseLoading">
+                                                    <q-spinner-gears size="25px" color="primary" />
+                                                </q-item-section>
+                                            </q-item>
+                                        </q-list>
+                                    </q-menu>
+                                </q-btn>
+
+                                <!-- Hidden File Input -->
+                                <input type="file" ref="fileInput" style="display:none"
+                                    accept=".xls,.xlsx,.pdf,.doc,.docx,.txt,.csv" multiple @change="handleFileUpload" />
+                            </template>
+
+                            <!-- Hidden File Input -->
+                            <input type="file" ref="fileInput" style="display:none"
+                                accept=".xls,.xlsx,.pdf,.doc,.docx,.txt,.csv" multiple @change="handleFileUpload" />
+
+                            <!-- Right slot (send icon inside input) -->
+                            <template v-slot:after>
+                                <q-icon name="send" :class="[newMessage.trim() ? 'text-blue-9' : 'text-grey-5']"
+                                    :disabled="!newMessage.trim()" :loading="false"
+                                    @click="newMessage.trim() && sendMessage(newMessage)" />
+                            </template>
+                        </q-input>
+                    </q-card-actions>
+                </div>
+            </div>
+        </template>
+
+        <!-- Vue -->
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <!-- Quasar -->
+        <script src="https://cdn.jsdelivr.net/npm/quasar@2.17.4/dist/quasar.umd.prod.js"></script>
+
+        <script>
+            const { createApp } = Vue;
+            const { ref } = Vue;
+
+            createApp({
+                data() {
+                    return {
+                        //newly added
+                        trainingMode: false,
+                        currentMode: 'QTIS AI Assistant', // 'assistant' or 'training'
+                        //-----------
+                        isMinimized: false,
+                        showChat: true,
+                        chatContainer: ref(null),
+                        showIcon: true,
+                        unreadCount: 1,
+                        newMessage: '',
+                        attachedFiles: [], // store multiple uploaded files
+                        messages: []
+                    }
+                },
+                methods: {
+                    //Newly added
+                    setTrainingMode(value) {
+                        this.trainingMode = value;
+                    },
+                    setMode(mode) {
+                        if (mode === 'assistant') {
+                            this.trainingMode = false;
+                            this.currentMode = 'QTIS AI Assistant';
+                        } else if (mode === 'training') {
+                            this.trainingMode = true;
+                            this.currentMode = 'QTIS AI Training Mode';
+                        }
+                    },
+                    //------------
+                    clearChat() {
+                        this.messages = [];
+                        this.newMessage = '';
+                        this.attachedFiles = [];
+                    },
+                    openForms(type) {
+                        var widgetEntityForm = app.getGlobalComponent("widgetEntityForm");
+                        var record = { rowState: 1, entityId: "cl1dWqPym2tmGfJKzDnV3WiX" }
+                        if (type === 'users') {
+                            record = { rowState: 1, entityId: "cl1dWqPym2tmGfJKzDnV3WiX" }
+                            widgetEntityForm.newForm(this, record, "System Users - New", record.entityId, "new");
+                        } else if (type === 'clients') {
+                            record = { rowState: 1, entityId: "c6l186nAXRsP4uaQ2Y8GWNfW" }
+                            widgetEntityForm.newForm(this, record, "Clients - New", record.entityId, "new");
+                        } else if (type === 'FileImportMap') {
+                            record = { rowState: 1, entityId: "c2anoaNGE7iR52IbRJ51VGyS1" }
+                            widgetEntityForm.newForm(this, record, "File Import Map - New", record.entityId, "new");
+                        } else if (type === 'notepad') {
+                            record = { rowState: 1, entityId: "cAoaWa4xLQIjV5HwBEXzWYGUl" }
+                            widgetEntityForm.newForm(this, record, "Notepad - New", record.entityId, "new");
+                        } else if (type === 'cases') {
+                            record = {
+                                rowState: 1, entityId: "cQ8lzxq3MBU8xUpQGlW4EeSl"
+                            }
+                            widgetEntityForm.newForm(this, record, "Cases - New", record.entityId, "new");
+                        }
+                    },
+                    toggleMinimize() {
+                        this.isMinimized = !this.isMinimized;
+                        this.showChat = !this.isMinimized;
+                        console.log("-----------", this.isMinimized, this.showChat)
+                    },
+                    toggleChat() {
+                        console.log("-------++++++++----", this.isMinimized, this.showChat)
+                        this.showChat = !this.showChat;
+                        this.isMinimized = false;
+                    },
+                    openChat() {
+                        this.showChat = true;
+                        this.isMinimized = false;
+                    },
+                    handleFileUpload(event) {
+                        const files = Array.from(event.target.files);
+                        const allowedTypes = [
+                            "application/vnd.ms-excel",
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            "application/pdf",
+                            "image/png",
+                            "image/jpeg"
+                        ];
+
+                        files.forEach(file => {
+                            if (!allowedTypes.includes(file.type)) {
+                                alert(`Invalid file type: ${file.name}`);
+                                return;
+                            }
+
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                const base64Data = reader.result.split(",")[1];
+                                this.attachedFiles.push({
+                                    data: base64Data,
+                                    filename: file.name,
+                                    mimeType: file.type
+                                });
+                            };
+                            reader.readAsDataURL(file);
+                        });
+
+                        // Allow selecting the same file again
+                        this.$refs.fileInput.value = '';
+                    },
+                    removeFile(index) {
+                        this.attachedFiles.splice(index, 1);
+                    },
+                    async sendMessage(quickQuestion = '') {
+                        if (quickQuestion !== '') {
+                            this.newMessage = quickQuestion;
+                        }
+                        const msg = this.newMessage.trim();
+                        if (!msg && !this.attachedFiles.length) return;
+
+                        // Push user message
+                        if (msg) {
+                            this.messages.push({ from: 'user', text: msg, isLoading: false });
+                        }
+                        if (this.attachedFiles.length) {
+                            this.attachedFiles.forEach(file => {
+                                this.messages.push({ from: 'user', text: `[📎 ${file.filename}]`, isLoading: false });
+                            });
+                        }
+                        this.$nextTick(() => this.scrollToBottom());
+
+                        this.newMessage = '';
+                        const botIndex = this.messages.push({
+                            from: 'bot',
+                            text: '',
+                            isLoading: true
+                        }) - 1;
+                        this.scrollToBottom();
+                        // Prepare full conversation for API
+                        const formattedMessages = this.messages.map(m => {
+                            if (m.from === 'user') return { role: 'user', content: m.text };
+                            if (m.from === 'bot' && !m.isLoading) return { role: 'assistant', content: m.text };
+                            return null; // skip loading placeholders
+                        }).filter(Boolean);
+
+                        try {
+                            const res = await fetch('http://localhost:3001/api/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    messages: [
+                                        {
+                                            "role": "system",
+                                            "content": "You are Iris, You are a friendly, helpful assistant for QTIS application. You help users navigate the site, answer FAQs, and guide them to relevant pages. If you don't know something, say you don't know instead of making things up. say you are assistant to the users chatting with you, providing responses with proper alignment, spaces in more readable format which can be interpretted in HTML. You are not just a computer program. Always respond in pure HTML format using <b> for bold and <br> for line breaks. Never use Markdown. Give good detailed answer not just one line"
+                                        },
+                                        ...formattedMessages
+                                    ],
+                                    files: this.attachedFiles,
+                                    summarizeFiles: false,
+                                    temperature: 0,
+                                    max_tokens: 0
+                                })
+                            });
+
+                            const data = await res.json();
+                            const reply = data?.choices?.[0]?.message?.content || "No reply received.";
+                            this.messages[botIndex] = {
+                                from: 'bot',
+                                text: reply,
+                                isLoading: false
+                            };
+
+                            // Reset file list after send
+                            this.attachedFiles = [];
+                            this.$nextTick(() => this.scrollToBottom());
+
+                        } catch (err) {
+                            console.error('Error calling API:', err);
+                            this.messages.push({ from: 'bot', text: 'Sorry, there was an error processing your request.', isLoading: false });
+                        }
+                    },
+                    scrollToBottom() {
+                        console.log("scrolling to bottom")
+                        const container = this.$refs.chatContainer?.$el;
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    }
+                }
+
+            })
+                .use(Quasar)
+                .mount("#q-app");
+        </script>
+
+</body>
+
+</html>

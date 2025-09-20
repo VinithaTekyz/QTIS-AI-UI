@@ -1,0 +1,148 @@
+<div v-if="isMinimized">
+    <q-dialog @click.stop v-model="isMinimized" position="bottom-right" transition-hide="slide-up" persistent no-focus
+        seamless transition-show="slide-down" transition-duration="200"
+        style="z-index:20;position: fixed !important; bottom: 10px !important; right: 10px !important; top: auto !important; left: auto !important; margin: 0 !important; align-items: flex-end !important; justify-content: flex-end !important;">
+        <q-card
+            style="position: fixed; bottom:50px; right:10px; width: 200px; height: 50px; display: flex; align-items: center; justify-content: space-between !important; padding: 0 8px; border-radius: 15px;">
+            <!-- Header with close button -->
+            <div>QTIS AI</div>
+            <div style="display: flex;">
+                <div>
+                    <q-btn dense flat round :icon="isMinimized ? 'expand_less' : 'expand_more'" color="grey-7"
+                        @click="toggleMinimize" />
+                </div>
+                <q-btn dense flat round icon="close" color="grey-7" @click="toggleChat" />
+            </div>
+        </q-card>
+
+    </q-dialog>
+</div>
+</template>
+<template v-if="user.tenantId == 'chatai' && showChat">
+    <div :style="{
+				height: isFullScreen ? '80vh' : '50vh',
+				display: 'flex',
+				flexDirection: 'column',
+				backgroundColor: 'rgb(245, 245, 245)',
+				alignItems: 'center'
+			}" :class="messages.length === 0 ? 'justify-center' : ''">
+        <!-- Header with close button -->
+        <div style="position: absolute; top: 14px; right: 14px; display: flex;">
+            <div>
+                <q-btn dense flat round :icon="isFullScreen ? 'fullscreen_exit' : 'fullscreen'" color="grey-7"
+                    @click="toggleFullScreen" />
+            </div>
+            <div>
+                <q-btn dense flat round :icon="isMinimized ? 'expand_less' : 'expand_more'" color="grey-7"
+                    @click="toggleMinimize" />
+            </div>
+            <div>
+                <q-btn dense flat round icon="delete" color="grey-7" @click="clearChat" />
+            </div>
+            <q-btn dense flat round icon="close" color="grey-7" @click="toggleChat" />
+        </div>
+        <!-- Messages -->
+        <q-card-section v-show="messages.length" style="flex: 1; overflow-y: auto; width:70%" ref="chatContainer">
+            <template v-for="(msg, index) in messages" :key="index">
+
+                <!-- User message -->
+                <div v-if="msg.from === 'user'" class="custom-msg"
+                    style="display: flex; align-items: flex-end; justify-content: flex-end; margin-bottom: 8px; margin-left:40px">
+                    <q-chat-message text-color="white" sent bg-color="grey-6" style="max-width: max-content;
+                         margin: 0;
+                         border-radius: 10px !important;
+                         min-width: 50px;
+                         line-height: 1.2 !important;
+                         padding-top: 0px !important;
+                         min-height: auto !important;">
+                        <div v-html="msg.text"></div>
+                    </q-chat-message>
+                </div>
+
+                <!-- Bot message -->
+                <div v-if="msg.from === 'bot'" class="custom-msg"
+                    style="display: flex; align-items: flex-end; justify-content: flex-start; margin-bottom: 8px; margin-right: 40px;">
+                    <q-chat-message bg-color="white" text-color="black" style="max-width: max-content;
+                         margin: 0;
+                         border-radius: 10px !important;
+                         min-width: 50px;
+                         line-height: 1.2 !important;
+                         padding-top: 0px !important;
+                         min-height: auto !important;">
+                        <template v-if="msg.isLoading">
+                            <q-spinner-dots size="1rem" />
+                        </template>
+                        <template v-else>
+                            <div v-html="msg.text"></div>
+                        </template>
+                    </q-chat-message>
+                </div>
+
+            </template>
+
+        </q-card-section>
+
+        <!-- Quick Access -->
+        <div v-if="messages.length === 0" style="width:70%; text-align:center; margin-bottom:8px;">
+            <h5 style="margin:0; color:#212121; font-weight:bold; display:inline-block;">QTIS AI Assistant</h5>
+        </div>
+        <q-card v-show="!isMinimized"
+            style="padding-left: 20px; color:#0d4f8a; box-shadow: none; background-color: transparent;">
+            <q-card-actions align="center" style="flex-wrap: wrap;">
+                <q-btn outline rounded color="primary" style="margin:2px" size="sm" :loading="aiAssistUserLoading"
+                    :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
+                    @click="getAiAssist('users')">
+                    <q-icon name="add" class="q-mr-none" /> <!-- No spacing -->
+                    User
+                </q-btn>
+                <q-btn outline rounded color="primary" style="margin:2px" size="sm" :loading="aiAssistClientLoading"
+                    :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
+                    @click="getAiAssist('clients')">
+                    <q-icon name="add" class="q-mr-none" /> <!-- No spacing -->
+                    Client
+                </q-btn>
+                <q-btn outline rounded color="primary" style="margin:2px" size="sm" :loading="aiAssistNoteLoading"
+                    :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
+                    @click="getAiAssist('notepad')">
+                    <q-icon name="add" class="q-mr-none" /> <!-- No spacing -->
+                    Notes
+                </q-btn>
+                <q-btn outline rounded color="primary" style="margin:2px" size="sm" :loading="aiAssistCaseLoading"
+                    :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
+                    @click="getAiAssist('cases')">
+                    <q-icon name="add" class="q-mr-none" /> <!-- No spacing -->
+                    Case
+                </q-btn>
+            </q-card-actions>
+        </q-card>
+        <q-card-section v-if="attachedFiles.length" class="q-pt-none">
+            <div class="row" style="gap:6px; flex-wrap:wrap;">
+                <q-chip v-for="(f, idx) in attachedFiles" :key="idx" outline removable @remove="removeFile(idx)"
+                    text-color="grey-7" size="sm" :label="f.filename">
+                </q-chip>
+            </div>
+        </q-card-section>
+
+        <!-- Chat input (composer) -->
+        <q-card-actions align="center" class="q-pa-sm bg-grey-2 custom-field"
+            style="gap:6px; border-top:1px solid #eee; width:70%">
+            <q-input outlined dense autogrow rounded class="col" v-model="newMessage"
+                placeholder="What would you like Qtis assist to help with…" @keyup.enter="sendMessage(newMessage)"
+                :input-style="{ maxHeight: '120px', overflowY: 'auto' }">
+                <div style="flex:0 0 auto;">
+                    <q-btn color="grey-7" flat icon="add" @click="$refs.fileInput.click()" />
+                </div>
+
+                <!-- Hidden File Input -->
+                <input type="file" ref="fileInput" style="display:none" accept=".xls,.xlsx,.pdf,.doc,.docx,.txt,.csv"
+                    multiple @change="handleFileUpload" />
+                <!-- Right slot (send icon inside input) -->
+                <template v-slot:after>
+                    <q-icon name="send" :class="[newMessage.trim() ? 'text-blue-9' : 'text-grey-5']"
+                        :disabled="!newMessage.trim()" :loading="false"
+                        @click="newMessage.trim() && sendMessage(newMessage)" />
+                </template>
+            </q-input>
+        </q-card-actions>
+    </div>
+</template>
