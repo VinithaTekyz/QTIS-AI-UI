@@ -379,13 +379,7 @@
                             <!-- Hidden File Input -->
                             <input type="file" ref="fileInput" style="display:none"
                                 accept=".xls,.xlsx,.pdf,.doc,.docx,.txt,.csv" multiple @change="handleFileUpload" />
-                            <!-- Chip on a new line inside q-input -->
-                            <template v-slot:append>
-                                <q-chip clickable outline color="primary" text-color="primary" size="sm"
-                                    style="margin-top:6px; max-width: fit-content;">
-                                    Add FAQ
-                                </q-chip>
-                            </template>
+
                             <!-- Right slot (send icon inside input) -->
                             <template v-slot:after>
                                 <q-icon name="send" :class="[newMessage.trim() ? 'text-blue-9' : 'text-grey-5']"

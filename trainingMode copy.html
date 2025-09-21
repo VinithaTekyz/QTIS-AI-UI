@@ -99,17 +99,23 @@
         .bot-bubble {
             max-width: 90%;
             align-self: flex-start;
+            /* background-color: #f7f7f8; */
             color: #2d2d2d;
+            padding: 10px 14px;
+            /* border-radius: 16px; */
+            /* border-top-left-radius: 4px; */
             line-height: 1.4;
             font-size: 15px;
             word-wrap: break-word;
+            margin: 4px 0;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .faq-btn {
-            background-color: white;
-            border: none;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
             border-radius: 6px;
+            padding: 6px 12px;
             margin: 4px;
             font-size: 14px;
             cursor: pointer;
@@ -124,13 +130,8 @@
             transform: translateY(-1px);
         }
 
-        .material-icons {
-            font-size: 18px;
-            vertical-align: middle;
-        }
-
         .confirm-btn {
-            color: #10b407;
+            color: #1976d2;
             border-color: #1976d2;
         }
 
@@ -315,7 +316,7 @@
                         style="gap:6px; border-top:1px solid #eee; width:70%; background-color: #e8f0f9 !important; display: block;">
                         <q-input outlined dense autogrow rounded class="col" v-model="newMessage"
                             placeholder="What would you like Qtis assist to help with…"
-                            @keyup.enter="handleUserInput(newMessage)"
+                            @keyup.enter="sendMessage(newMessage)"
                             :input-style="{ maxHeight: '120px', overflowY: 'auto' }">
                             <!-- Left slot: Dropdown menu -->
                             <template v-slot:prepend>
@@ -379,18 +380,12 @@
                             <!-- Hidden File Input -->
                             <input type="file" ref="fileInput" style="display:none"
                                 accept=".xls,.xlsx,.pdf,.doc,.docx,.txt,.csv" multiple @change="handleFileUpload" />
-                            <!-- Chip on a new line inside q-input -->
-                            <template v-slot:append>
-                                <q-chip clickable outline color="primary" text-color="primary" size="sm"
-                                    style="margin-top:6px; max-width: fit-content;">
-                                    Add FAQ
-                                </q-chip>
-                            </template>
+
                             <!-- Right slot (send icon inside input) -->
                             <template v-slot:after>
                                 <q-icon name="send" :class="[newMessage.trim() ? 'text-blue-9' : 'text-grey-5']"
                                     :disabled="!newMessage.trim()" :loading="false"
-                                    @click="newMessage.trim() && handleUserInput(newMessage)" />
+                                    @click="newMessage.trim() && sendMessage(newMessage)" />
                             </template>
                         </q-input>
 
@@ -435,12 +430,6 @@
                         messages: []
                     }
                 },
-                mounted() {
-                    // Allow inline buttons to call handleUserInput
-                    window.__vueHandle = (val) => {
-                        this.handleUserInput(val);
-                    };
-                },
                 methods: {
                     //Newly added
                     setTrainingMode(value) {
@@ -454,148 +443,6 @@
                             this.trainingMode = true;
                             this.currentMode = 'QTIS AI Training Mode';
                         }
-                    },
-                    // Helper to render confirm/again buttons
-                    pushConfirmButtons(type) {
-                        this.messages.push({
-                            from: 'bot',
-                            text: `
-                                <div>
-                                    <p style="margin:0;">${type === 'question' ? 'Please confirm the question?' : 'Please confirm the answer?'}</p>
-                                    <button 
-                                    class="faq-btn confirm-btn" 
-                                    onclick="window.__vueHandle('confirm')">
-                                        <span class="material-icons" style="vertical-align:middle;">check</span>
-                                    </button>
-                                    <button 
-                                    class="faq-btn again-btn" 
-                                    onclick="window.__vueHandle('again')">
-                                        <span class="material-icons" style="vertical-align:middle;">refresh</span>
-                                    </button>
-                                </div>
-                                `,
-                            isLoading: false
-                        });
-                    },
-                    // Remove confirm/again buttons from the last bot message
-                    updateBotMessage(newHtml) {
-                        const lastIndex = this.messages.length - 1;
-                        if (lastIndex >= 0 && this.messages[lastIndex].from === 'bot') {
-                            this.messages[lastIndex].text = newHtml;
-                        }
-                    },
-                    // Triggered when clicking the Add FAQ chip
-                    startFaqFlow() {
-                        this.faqState = 'awaitQuestion';
-                        this.faqDraft = { question: '', answer: '' };
-                        this.messages.push({ from: 'bot', text: '<p style="margin:0;">Enter the FAQ question:</p>', isLoading: false });
-                    },
-                    showConfirmBoth() {
-                        this.messages.push({
-                            from: 'bot',
-                            text: `
-        <p style="margin:0;">Please confirm both:</p>
-        <b>${this.faqDraft.question}</b><br>
-        ${this.faqDraft.answer}<br>
-        <button class="faq-btn confirm-btn" onclick="window.__vueHandle('confirm')">Add Faq</button>
-        <button class="faq-btn again-btn" onclick="window.__vueHandle('again')">
-            <span class="material-icons" style="vertical-align:middle;">refresh</span>
-        </button>
-      `,
-                            isLoading: false
-                        });
-                        this.faqState = 'confirmBoth';
-                    },
-
-                    async handleUserInput(input) {
-                        const msg = input.trim().toLowerCase();
-                        if (!msg) return;
-
-                        if (['confirm', 'again', 'question', 'answer'].includes(msg)) {
-                            if (msg === 'confirm') {
-                                if (this.faqState === 'confirmQuestion') {
-                                    this.updateBotMessage(`<p style="margin:0;">Your confirmed FAQ Question:</p>${this.faqDraft.question}`);
-                                    this.faqState = 'awaitAnswer';
-                                    this.messages.push({ from: 'bot', text: '<p style="margin:0;">Please enter the FAQ answer:</p>', isLoading: false });
-                                } else if (this.faqState === 'confirmAnswer') {
-                                    this.updateBotMessage(`<p style="margin:0;">Your confirmed FAQ Answer:</p>${this.faqDraft.answer}`);
-                                    this.showConfirmBoth();
-                                } else if (this.faqState === 'confirmBoth') {
-                                    this.updateBotMessage(`
-                                        <p style="margin:0;">Please review the FAQ:</p>
-                                        ${this.faqDraft.question}<br>
-                                        ${this.faqDraft.answer}
-                                    `);
-                                    this.faqState = null;
-                                    this.messages.push({
-                                        from: 'bot',
-                                        text: 'FAQ database updated successfully! You can add another FAQ or continue chatting.',
-                                        isLoading: false
-                                    });
-                                    console.log('Sending FAQ to server:', this.faqDraft);
-                                }
-                            } else if (msg === 'again') {
-                                if (this.faqState === 'confirmBoth') {
-                                    this.messages.pop();
-                                    this.messages.push({
-                                        from: 'bot',
-                                        text: `
-              <b>Edit which?</b><br>
-              <button class="faq-btn confirm-btn" onclick="window.__vueHandle('question')">Question</button>
-              <button class="faq-btn again-btn" onclick="window.__vueHandle('answer')">Answer</button>
-            `,
-                                        isLoading: false
-                                    });
-                                    this.faqState = 'editChoice';
-                                } else {
-                                    this.messages.pop();
-                                    if (this.faqState === 'confirmQuestion') {
-                                        this.faqState = 'awaitQuestion';
-                                        this.messages.push({ from: 'bot', text: '<b>Re-enter the FAQ question:</b>', isLoading: false });
-                                    } else if (this.faqState === 'confirmAnswer') {
-                                        this.faqState = 'awaitAnswer';
-                                        this.messages.push({ from: 'bot', text: '<b>Re-enter the FAQ answer:</b>', isLoading: false });
-                                    }
-                                }
-                            } else if (this.faqState === 'editChoice') {
-                                if (msg === 'question') {
-                                    this.editingFromBoth = true; // 👈 Mark that we're editing only the question
-                                    this.faqState = 'awaitQuestion';
-                                    this.messages.push({ from: 'bot', text: '<b>Re-enter the FAQ question:</b>', isLoading: false });
-                                } else if (msg === 'answer') {
-                                    this.editingFromBoth = false;
-                                    this.faqState = 'awaitAnswer';
-                                    this.messages.push({ from: 'bot', text: '<b>Re-enter the FAQ answer:</b>', isLoading: false });
-                                }
-                            }
-                            this.$nextTick(() => this.scrollToBottom());
-                            return;
-                        }
-
-                        // Push user input as normal message
-                        this.messages.push({ from: 'user', text: input.trim(), isLoading: false });
-
-                        // Flow logic
-                        if (this.faqState === 'awaitQuestion') {
-                            this.faqDraft.question = input.trim();
-                            if (this.editingFromBoth) {
-                                // 👈 Skip answer prompt—go straight to confirmBoth
-                                this.editingFromBoth = false;
-                                this.showConfirmBoth();
-                            } else {
-                                this.faqState = 'confirmQuestion';
-                                this.pushConfirmButtons('question');
-                            }
-                        } else if (this.faqState === 'awaitAnswer') {
-                            this.faqDraft.answer = input.trim();
-                            this.faqState = 'confirmAnswer';
-                            this.pushConfirmButtons('answer');
-                        } else {
-                            this.sendMessage(input.trim());
-                        }
-
-                        this.newMessage = '';
-                        this.$nextTick(() => this.scrollToBottom());
                     },
                     //------------
                     clearChat() {
@@ -673,6 +520,19 @@
                     removeFile(index) {
                         this.attachedFiles.splice(index, 1);
                     },
+                    formattedMessages() {
+                        if(this.trainingMode) {
+                            return this.messages.map(m => {
+                                if (m.from === 'user') return { role: 'user', content: m.text };
+                                return null;
+                            }).filter(Boolean);
+                        }
+                        return this.messages.map(m => {
+                            if (m.from === 'user') return { role: 'user', content: m.text };
+                            if (m.from === 'bot' && !m.isLoading) return { role: 'assistant', content: m.text };
+                            return null; // skip loading placeholders
+                        }).filter(Boolean);
+                    },
                     async sendMessage(quickQuestion = '') {
                         if (quickQuestion !== '') {
                             this.newMessage = quickQuestion;
@@ -699,11 +559,7 @@
                         }) - 1;
                         this.scrollToBottom();
                         // Prepare full conversation for API
-                        const formattedMessages = this.messages.map(m => {
-                            if (m.from === 'user') return { role: 'user', content: m.text };
-                            if (m.from === 'bot' && !m.isLoading) return { role: 'assistant', content: m.text };
-                            return null; // skip loading placeholders
-                        }).filter(Boolean);
+                        const formattedMessages = formattedMessages();
 
                         try {
                             const res = await fetch('http://localhost:3001/api/v1/chat/completions', {

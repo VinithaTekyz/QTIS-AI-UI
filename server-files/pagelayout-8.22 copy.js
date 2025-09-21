@@ -319,15 +319,6 @@ Vue.component('cnx-page', {
                                             </q-item-section>
                                             <q-item-section>Clear Chat</q-item-section>
                                         </q-item>
-                                        <q-separator />
-                                        <!-- Training Mode Toggle -->
-                                        <q-item>
-                                            <q-item-section>Training Mode</q-item-section>
-                                            <q-item-section side>
-                                                <q-toggle v-model="trainingMode" color="primary" dense
-                                                    @update:model-value="setTrainingMode" />
-                                            </q-item-section>
-                                        </q-item>
                                     </q-list>
                                 </q-menu>
                             </q-btn>
@@ -348,7 +339,7 @@ Vue.component('cnx-page', {
                         backgroundColor: '#e8f0f9',
                         alignItems: 'center',
                         width: '100%',
-                        height: isFullScreen ? '72vh' : '42vh' // match parent height
+                        height: isFullScreen ? '73vh' : '43vh' // match parent height
                     }" :class="messages.length === 0 ? 'justify-center chat-container' : 'chat-container'">
                     <!-- Messages -->
                     <q-card-section class="messages" :style="{ height: messages.length ? '100%' : 'unset' }">
@@ -361,7 +352,7 @@ Vue.component('cnx-page', {
                             <!-- Bot message -->
                             <div v-if="msg.from === 'bot'" class="msg-row bot-row">
                                 <template v-if="msg.isLoading">
-                                    <q-spinner-dots size="1rem" />
+                                    <q-spinner-dots color="black" size="1rem" />
                                 </template>
                                 <template v-else>
                                     <div class="bubble bot-bubble" v-html="msg.text"></div>
@@ -372,11 +363,25 @@ Vue.component('cnx-page', {
 
                     <!-- Quick Access -->
                     <div v-if="messages.length === 0" style="width:70%; text-align:center; margin-bottom:8px;">
-                        <p style="font-size: larger; margin:0; color:#212121; font-weight:bold; display:inline-block;">
+                        <p
+                            style="font-size: large; margin: 10px;; color:#212121; font-weight:bold; display:inline-block;">
                             Hello! How can I assist you today?</p>
+                        <!-- FAQ Chips -->
+                        <div v-if="trainingMode && !faqFlowStarted">
+                            <q-chip clickable color="white" text-color="primary" @click="startFaqFlow(add)">
+                                Add FAQ
+                            </q-chip>
+                            <q-chip clickable color="white" text-color="orange" @click="startFaqFlow(edit)">
+                                Edit FAQ
+                            </q-chip>
+                            <q-chip clickable color="white" text-color="red" @click="startFaqFlow(delete)">
+                                Delete FAQ
+                            </q-chip>
+                        </div>
                     </div>
 
-                    <q-card-section v-if="attachedFiles.length" class="q-pt-none" style="padding-bottom: 0px !important;">
+                    <q-card-section v-if="attachedFiles.length" class="q-pt-none"
+                        style="padding-bottom: 0px !important;">
                         <div class="row" style="gap:6px; flex-wrap:wrap;">
                             <q-chip v-for="(f, idx) in attachedFiles" :key="idx" outline removable
                                 @remove="removeFile(idx)" text-color="grey-8" size="sm" :label="f.filename">
@@ -386,7 +391,7 @@ Vue.component('cnx-page', {
 
                     <!-- Chat input (composer) -->
                     <q-card-actions align="center" class="q-pa-sm bg-grey-2 custom-field"
-                        style="gap:6px; border-top:1px solid #eee; width:70%; background-color: #e8f0f9 !important;">
+                        style="gap:6px; border-top:1px solid #eee; width:70%; background-color: #e8f0f9 !important; display: block;">
                         <q-input outlined dense autogrow rounded class="col" v-model="newMessage"
                             placeholder="What would you like Qtis assist to help with…"
                             @keyup.enter="sendMessage(newMessage)"
@@ -403,7 +408,7 @@ Vue.component('cnx-page', {
                                             </q-item>
                                             <hr style="width:85%; background-color: #9ea2a5;" />
                                             <!-- User -->
-                                            <q-item clickable v-ripple
+                                            <q-item clickable v-ripple v-if="!faqFlowStarted"
                                                 :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
                                                 @click="getAiAssist('users')">
                                                 <q-item-section avatar><q-icon name="person_add" /></q-item-section>
@@ -413,7 +418,7 @@ Vue.component('cnx-page', {
                                                 </q-item-section>
                                             </q-item>
                                             <!-- Client -->
-                                            <q-item clickable v-ripple
+                                            <q-item clickable v-ripple v-if="!faqFlowStarted"
                                                 :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
                                                 @click="getAiAssist('clients')">
                                                 <q-item-section avatar><q-icon name="groups" /></q-item-section>
@@ -423,7 +428,7 @@ Vue.component('cnx-page', {
                                                 </q-item-section>
                                             </q-item>
                                             <!-- Notes -->
-                                            <q-item clickable v-ripple
+                                            <q-item clickable v-ripple v-if="!faqFlowStarted"
                                                 :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
                                                 @click="getAiAssist('notepad')">
                                                 <q-item-section avatar><q-icon name="note_add" /></q-item-section>
@@ -433,7 +438,7 @@ Vue.component('cnx-page', {
                                                 </q-item-section>
                                             </q-item>
                                             <!-- Case -->
-                                            <q-item clickable v-ripple
+                                            <q-item clickable v-ripple v-if="!faqFlowStarted"
                                                 :disable="aiAssistUserLoading || aiAssistClientLoading || aiAssistNoteLoading || aiAssistCaseLoading"
                                                 @click="getAiAssist('cases')">
                                                 <q-item-section avatar><q-icon name="folder_open" /></q-item-section>
@@ -442,10 +447,24 @@ Vue.component('cnx-page', {
                                                     <q-spinner-gears size="25px" color="primary" />
                                                 </q-item-section>
                                             </q-item>
+											<q-item clickable v-ripple v-if="faqFlowStarted"
+                                                @click="startFaqFlow('ADD')">
+                                                <q-item-section avatar><q-icon name="add" /></q-item-section>
+                                                <q-item-section>Add FAQ</q-item-section>
+                                            </q-item>
+											<q-item clickable v-ripple v-if="faqFlowStarted"
+                                                @click="startFaqFlow('EDIT')">
+                                                <q-item-section avatar><q-icon name="edit" /></q-item-section>
+                                                <q-item-section>Edit FAQ</q-item-section>
+                                            </q-item>
+											<q-item clickable v-ripple v-if="faqFlowStarted"
+                                                @click="startFaqFlow('DELETE')">
+                                                <q-item-section avatar><q-icon name="delete" /></q-item-section>
+                                                <q-item-section>Delete FAQ</q-item-section>
+                                            </q-item>
                                         </q-list>
                                     </q-menu>
                                 </q-btn>
-
                                 <!-- Hidden File Input -->
                                 <input type="file" ref="fileInput" style="display:none"
                                     accept=".xls,.xlsx,.pdf,.doc,.docx,.txt,.csv" multiple @change="handleFileUpload" />
@@ -454,7 +473,20 @@ Vue.component('cnx-page', {
                             <!-- Hidden File Input -->
                             <input type="file" ref="fileInput" style="display:none"
                                 accept=".xls,.xlsx,.pdf,.doc,.docx,.txt,.csv" multiple @change="handleFileUpload" />
-
+							<template v-slot:append>
+                                <q-chip v-if="faqMode === ADD" clickable outline color="primary" text-color="primary" size="sm"
+                                    style="margin-top:6px; max-width: fit-content;">
+                                    Add FAQ
+                                </q-chip>
+								<q-chip v-if="faqMode === EDIT" clickable outline color="orange" text-color="orange" size="sm"
+                                    style="margin-top:6px; max-width: fit-content;">
+                                    Edit FAQ
+                                </q-chip>
+								<q-chip v-if="faqMode === DELETE" clickable outline color="red" text-color="red" size="sm"
+                                    style="margin-top:6px; max-width: fit-content;">
+                                    Delete FAQ
+                                </q-chip>
+                            </template>
                             <!-- Right slot (send icon inside input) -->
                             <template v-slot:after>
                                 <q-icon name="send" :class="[newMessage.trim() ? 'text-blue-9' : 'text-grey-5']"
@@ -553,6 +585,10 @@ Vue.component('cnx-page', {
 			fileSummary: null,
 			isFullScreen: false,
 			currentMode: 'QTIS AI Assistant', // 'assistant' or 'training'
+			displayConfirmTrainingBtn: false,
+			lastBotMessage: '',
+			faqFlowStarted: false,
+			faqMode: ''
 		}
 	},
 	computed: {
@@ -597,6 +633,12 @@ Vue.component('cnx-page', {
 				localStorage.setItem('loginLoader', '');
 			}, 3500);
 		}
+	},
+	mounted() {
+		// Allow inline buttons to call handleUserInput
+		window.__vueHandle = (value) => {
+			this.sendTrainingMessage(value);
+		};
 	},
 	methods: {
 
@@ -815,6 +857,10 @@ Vue.component('cnx-page', {
 			this.trainingMode = value;
 		},
 		setMode(mode) {
+			this.messages = [];
+			this.newMessage = '';
+			this.attachedFiles = [];
+			this.lastBotMessage = '';
 			if (mode === 'assistant') {
 				this.trainingMode = false;
 				this.currentMode = 'QTIS AI Assistant';
@@ -823,10 +869,28 @@ Vue.component('cnx-page', {
 				this.currentMode = 'QTIS AI Training Mode';
 			}
 		},
+		startFaqFlow(value) {
+			this.faqFlowStarted = true;
+			this.faqMode = value;
+		},
 		clearChat() {
 			this.messages = [];
 			this.newMessage = '';
 			this.attachedFiles = [];
+			this.lastBotMessage = '';
+		},
+		formattedMessages() {
+			if (this.trainingMode) {
+				return this.messages.map(m => {
+					if (m.from === 'user') return { role: 'user', content: m.text };
+					return null;
+				}).filter(Boolean);
+			}
+			return this.messages.map(m => {
+				if (m.from === 'user') return { role: 'user', content: m.text };
+				if (m.from === 'bot' && !m.isLoading) return { role: 'assistant', content: m.text };
+				return null; // skip loading placeholders
+			}).filter(Boolean);
 		},
 		async getAiAssist(selectedType) {
 			this.selectedType = selectedType;
@@ -1003,7 +1067,56 @@ Vue.component('cnx-page', {
 		removeFile(index) {
 			this.attachedFiles.splice(index, 1);
 		},
+		async sendTrainingMessage(value) {
+			this.messages[this.messages.length - 1].text = this.lastBotMessage;
+			const currentMessage = this.lastBotMessage;
+			this.lastBotMessage = '';
+			// Add bot "typing" spinner message
+			this.botIndex = this.messages.push({
+				from: 'bot',
+				text: '',
+				isLoading: true
+			}) - 1;
+			this.$nextTick(() => this.scrollToBottom());
+			var parameters = {
+				messages: [{
+					"role": "system",
+					"content": value === "confirm" ?
+						`You are on training mode. Analyse and add the provided FAQ in the system.`
+						: `Reframe the given message.`
+				},
+				{
+					role: "user",
+					content: currentMessage
+				}],
+				files: [],
+				summarizeFiles: false,
+				temperature: 0,
+				max_tokens: 0
+			};
+			this.lastBotMessage = '';
+			executeAppAPI("chataiapi", { input: parameters }, null, this.handleTrainingModeResult);
+		},
+		handleTrainingModeResult(response) {
+			if (response.status == 'OK') {
+				console.log("response", JSON.parse(response.result));
+				const data = JSON.parse(response.result);
+				const reply = data?.choices?.[0]?.message?.content || "No reply received.";
+				this.messages[this.botIndex].text = reply;
+				this.messages[this.botIndex].isLoading = false;
+				console.log("message array", this.messages)
+			} else {
+				console.error('Error calling API:', err);
+				this.messages[botIndex] = { from: 'bot', text: 'Sorry, there was an error processing your request.', isLoading: false };
+			}
+			this.$nextTick(() => this.scrollToBottom());
+		},
 		async sendMessage(quickQuestion = '') {
+			if (this.lastBotMessage !== '') {
+				this.messages[this.messages.length - 1].text = this.lastBotMessage;
+				this.lastBotMessage = '';
+			}
+			console.log("LAST BOT MESSAGE REPLACED in message array", this.messages)
 			// Check for quick question commands
 			quickQuestion = quickQuestion.toLowerCase();
 			// Example: "create user", "add client"
@@ -1030,6 +1143,7 @@ Vue.component('cnx-page', {
 				if (msg) {
 					this.messages.push({ from: 'user', text: msg, isLoading: false });
 				}
+				console.log("NEW USER MSG ADDED in message array", this.messages)
 				if (this.attachedFiles.length) {
 					this.fileSummary = "YES";
 					this.attachedFiles.forEach(file => {
@@ -1044,21 +1158,36 @@ Vue.component('cnx-page', {
 					text: '',
 					isLoading: true
 				}) - 1;
+
+				console.log("LOADING BOT MESSAGE ADDED in message array", this.messages)
 				this.$nextTick(() => this.scrollToBottom());
 				// Push bot loading message
 				// store index of the bot message or API
-				const formattedMessages = this.messages.map(m => {
-					if (m.from === 'user' && !m.isFile) return { role: 'user', content: m.text };
-					if (m.from === 'bot' && !m.isLoading) return { role: 'assistant', content: m.text };
-					return null; // skip loading placeholders
-				}).filter(Boolean);
+				const formattedMessages = this.formattedMessages();
 				console.log("formattedMessages", formattedMessages);
-
-				var parameters = {
-					messages: [
-						{
+				let parameters = {};
+				if (this.trainingMode) {
+					parameters = {
+						messages: [{
 							"role": "system",
-							"content": this.attachedFiles.length == 0 ? `You are Iris, You are a friendly, 
+							"content": `You are an AI assistant that reformulates FAQ pairs. From the conversation history, 
+							rewrite the user's input as a single FAQ **question** and **answer** pair only. 
+							Do not add explanations, extra text, or metadata. 
+							Return only the reframed question and answer.`
+						},
+						...formattedMessages],
+						files: this.attachedFiles,
+						summarizeFiles: false,
+						temperature: 0,
+						max_tokens: 0
+					};
+					this.displayConfirmTrainingBtn = true;
+				} else {
+					parameters = {
+						messages: [
+							{
+								"role": "system",
+								"content": this.attachedFiles.length == 0 ? `You are Iris, You are a friendly, 
 						helpful assistant for QTIS application. You help users navigate the site, answer FAQs, 
 						and guide them to relevant pages. If you don't know something, say you don't know instead of making things up. 
 						say you are assistant to the users chatting with you, providing responses with proper alignment, 
@@ -1066,7 +1195,7 @@ Vue.component('cnx-page', {
 						You are not just a computer program. Always respond in pure HTML format using <b> for bold and <br> for line breaks.
 						Never use Markdown and preserve conversation context. 
 						see the previous messages for context. Give good detailed answer not just one line` :
-								`You are an AI assistant that analyzes uploaded case files for investigators.
+									`You are an AI assistant that analyzes uploaded case files for investigators.
 								Your job:
 								1. Read the provided file metadata and content.
 								2. Summarize the file in 2–3 sentences.
@@ -1091,14 +1220,15 @@ Vue.component('cnx-page', {
 
 								Do not output JSON. Only HTML with highlights and sections.
 								Preserve conversation context. see the previous messages for context.`
-						},
-						...formattedMessages
-					],
-					files: this.attachedFiles,
-					summarizeFiles: false,
-					temperature: 0,
-					max_tokens: 0
-				};
+							},
+							...formattedMessages
+						],
+						files: this.attachedFiles,
+						summarizeFiles: false,
+						temperature: 0,
+						max_tokens: 0
+					};
+				}
 				executeAppAPI("chataiapi", { input: parameters }, null, this.handleResult);
 				this.attachedFiles = []; // Clear files after sending
 			}
@@ -1107,10 +1237,23 @@ Vue.component('cnx-page', {
 			if (response.status == 'OK') {
 				console.log("response", JSON.parse(response.result));
 				const data = JSON.parse(response.result);
-				const reply = data?.choices?.[0]?.message?.content || "No reply received.";
+				let reply = data?.choices?.[0]?.message?.content || "No reply received.";
 				// ✅ Update the same object so Vue detects changes
 				if (this.fileSummary === "YES") {
 					this.fileSummary = reply;
+				}
+				if (this.displayConfirmTrainingBtn) {
+					this.lastBotMessage = reply;
+					reply += `<button 
+                                    class="faq-btn confirm-btn" 
+                                    onclick="window.__vueHandle('confirm')">
+                                        <span class="material-icons" style="vertical-align:middle;">check</span>
+                                    </button>
+                                    <button 
+                                    class="faq-btn again-btn" 
+                                    onclick="window.__vueHandle('reframe')">
+                                        <span class="material-icons" style="vertical-align:middle;">refresh</span>
+                                    </button>`
 				}
 				this.messages[this.botIndex].text = reply;
 				this.messages[this.botIndex].isLoading = false;

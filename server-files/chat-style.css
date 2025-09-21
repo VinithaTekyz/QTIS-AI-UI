@@ -125,3 +125,37 @@
     background-color: #a0a0a0;
     /* Hover effect */
 }
+
+
+.faq-btn {
+    background-color: white;
+    border: none;
+    border-radius: 6px;
+    margin: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    /* Default cursor */
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.faq-btn:hover {
+    background-color: #e0e0e0;
+    cursor: pointer;
+    /* Pointer on hover */
+    transform: translateY(-1px);
+}
+
+.material-icons {
+    font-size: 18px;
+    vertical-align: middle;
+}
+
+.confirm-btn {
+    color: #10b407;
+    border-color: #1976d2;
+}
+
+.again-btn {
+    color: #d32f2f;
+    border-color: #d32f2f;
+}
