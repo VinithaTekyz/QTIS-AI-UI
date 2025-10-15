@@ -41,11 +41,12 @@
 .messages {
     width: 100%;
     /* Use full width for proper alignment */
-    max-width: 70%;
+    max-width: 90%;
     /* Limit the content width */
     margin: 0 auto;
     /* Center block within chat container */
     overflow-y: auto;
+    word-wrap: break-word;
 }
 
 .msg-row {
@@ -71,11 +72,16 @@
     border-radius: 12px;
     word-break: break-word;
 }
+.bubble ,
+.bubble * {
+  font-size: 15px !important;
+  line-height: 1.4 !important; /* Keeps readability consistent */
+}
 
 .user-bubble {
     max-width: 75%;
     align-self: flex-end;
-    background-color: #f7f7f8;
+    background-color: white;
     color: black;
     padding: 10px 14px;
     border-radius: 16px;
@@ -99,6 +105,19 @@
     word-wrap: break-word;
     margin: 4px 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.bot-bubble pre {
+    white-space: pre-wrap;
+    /* Wrap long lines while preserving spaces */
+    word-wrap: break-word;
+    /* Break long words */
+    overflow-wrap: break-word;
+    /* Ensure wrapping in modern browsers */
+    box-sizing: border-box;
+    /* Include padding in width calculation */
+    margin: 0;
+    /* Remove default <pre> margin */
 }
 
 /* For Webkit browsers (Chrome, Edge, Safari) */
@@ -145,6 +164,11 @@
     transform: translateY(-1px);
 }
 
+.faq-btn-disabled {
+    background: lightgrey !important;
+    cursor: not-allowed !important;
+}
+
 .material-icons {
     font-size: 18px;
     vertical-align: middle;
@@ -152,10 +176,42 @@
 
 .confirm-btn {
     color: #10b407;
-    border-color: #1976d2;
+    border-color: #10b407;
+    background: #e3f3e2;
 }
 
 .again-btn {
     color: #d32f2f;
     border-color: #d32f2f;
+    background: #f4dede;
+}
+
+.cpsubscription-navmenu {
+  height: 57vh;
+  overflow-y: scroll;
+}
+
+/* For Webkit browsers (Chrome, Edge, Safari) */
+.cpsubscription-navmenu::-webkit-scrollbar {
+    width: 6px;
+    /* Width of the scrollbar */
+}
+
+.cpsubscription-navmenu::-webkit-scrollbar-track {
+    background: #091c2d;
+    /* Track background */
+    border-radius: 4px;
+}
+
+.cpsubscription-navmenu::-webkit-scrollbar-thumb {
+    background-color: #c1c1c1;
+    /* Thumb color */
+    border-radius: 4px;
+    border: none;
+    /* Adds spacing around thumb */
+}
+
+.cpsubscription-navmenu::-webkit-scrollbar-thumb:hover {
+    background-color: #a0a0a0;
+    /* Hover effect */
 }

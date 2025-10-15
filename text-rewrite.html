@@ -13,6 +13,9 @@
   <div id="q-app">
     <img src="https://res.cloudinary.com/dn7ejk1ei/image/upload/v1757864421/image_2_1_prdwfg.png" alt="WhatsApp Video 2025 09 14 at 20.38.55" border="0">
     <div class="q-pa-md q-gutter-sm">
+      <a href="http://3.80.147.19/invoice_FREELANCE001_Mon%20Oct%2006%202025.pdf" download>Download</a>
+      <a href="http://3.80.147.19/invoice_001_1759759530376.docx" download>Download</a>
+
       <!-- Entities list -->
       <div v-if="parsedEntities.length === 0">No entities found. Please try again.</div>
       <div v-for="(entity, index) in parsedEntities" :key="index"
@@ -59,7 +62,9 @@
         </div>
         <!-- Create Button -->
         <div class="q-mt-sm">
-          <q-btn round color="primary" icon="add" size="sm" />
+          <!-- <q-btn round color="primary" icon="add" size="sm" /> -->
+          <q-btn round color="green" icon="task_alt" size="sm" />
+          
         </div>
       </div>
     </div>

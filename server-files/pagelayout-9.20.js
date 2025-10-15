@@ -240,15 +240,11 @@ Vue.component('cnx-page', {
                 seamless transition-show="slide-down" transition-duration="200"
                 style="z-index:20;position: fixed !important; bottom: 10px !important; right: 10px !important; top: auto !important; left: auto !important; margin: 0 !important; align-items: flex-end !important; justify-content: flex-end !important;">
                 <q-card
-                  style="position: fixed; bottom:50px; right:10px; width: 200px; height: 50px; display: flex; align-items: center; justify-content: space-between !important; padding: 0 8px; border-radius: 15px;">                    <!-- Header with close button -->
-                     <div>QTIS AI</div>
-                    <div style="display: flex;">
-                        <div>
-                            <q-btn dense flat round :icon="isMinimized ? 'expand_less' : 'expand_more'" color="grey-7"
-                                @click="toggleMinimize" />
-                        </div>
-                        <q-btn dense flat round icon="close" color="grey-7" @click="toggleChat" />
-                    </div>
+                  style="position: fixed; bottom:50px; right:10px; width: 72px; height: 70px; display: flex; align-items: center; justify-content: space-between !important; padding: 0 8px; border-radius: 50% 50% 6% 50%; background: linear-gradient(135deg, #e8f2ff 0%, #fff2f8 78%, #f5f2ff 100%);"> 
+                     <q-btn round @click="toggleMinimize" style=" width: 60px; height: 60px;">
+					 	<img src="https://iili.io/KaciQjf.png" alt="Chatbot"
+							style="width: 60px; height: 60px;" />
+					</q-btn>
                 </q-card>
 
             </q-dialog>
@@ -259,7 +255,7 @@ Vue.component('cnx-page', {
 				height: isFullScreen ? '80vh' : '50vh',
 				display: 'flex',
 				flexDirection: 'column',
-				backgroundColor: '#e8f0f9',
+				background: 'linear-gradient(135deg, #e8f2ff 0%, #fff2f8 78%, #f5f2ff 100%)',
 				alignItems: 'center',
                 boxShadow: '0 -2px 6px rgba(0, 0, 0, 0.1)'
 			}">
@@ -269,7 +265,6 @@ Vue.component('cnx-page', {
                     position: sticky;
                     top: 0;
                     width: 100%;
-                    background:'#e8f0f9';
                     z-index: 10;
                     ">
                     <div style="
@@ -336,7 +331,6 @@ Vue.component('cnx-page', {
                 <div :style="{
                         display: 'flex',
                         flexDirection: 'column',
-                        backgroundColor: '#e8f0f9',
                         alignItems: 'center',
                         width: '100%',
                         height: isFullScreen ? '73vh' : '43vh' // match parent height
@@ -363,9 +357,16 @@ Vue.component('cnx-page', {
 
                     <!-- Quick Access -->
                     <div v-if="messages.length === 0" style="width:70%; text-align:center; margin-bottom:8px;">
-                        <p
-                            style="font-size: large; margin: 10px;; color:#212121; font-weight:bold; display:inline-block;">
-                            Hello! How can I assist you today?</p>
+					
+					 	<img src="https://iili.io/KaciQjf.png" alt="Chatbot"
+							style="width: 75px; height: 75px;" />
+						<br />
+                        <p v-if="trainingMode"
+                            style="font-size: large; margin: 10px; color:#212121; font-weight:bold; display:inline-block;">
+                            Start updating FAQ database</p>
+						<p v-if="!trainingMode"
+                            style="font-size: large; margin: 10px; color:#212121; font-weight:bold; display:inline-block;">
+                            Hello! How can I assist you?</p>
                         <!-- FAQ Chips -->
                         <div v-if="trainingMode && !faqFlowStarted">
                             <q-chip clickable color="white" text-color="primary" @click="startFaqFlow('ADD')">
@@ -391,7 +392,7 @@ Vue.component('cnx-page', {
 
                     <!-- Chat input (composer) -->
                     <q-card-actions align="center" class="q-pa-sm bg-grey-2 custom-field"
-                        style="gap:6px; border-top:1px solid #eee; width:70%; background-color: #e8f0f9 !important; display: block;">
+                        style="gap:6px; width:70%; background: transparent !important; display: block;">
                         <q-input outlined dense autogrow rounded class="col" v-model="newMessage"
                             placeholder="What would you like Qtis assist to help with…"
                             @keyup.enter="sendMessage(newMessage)"
@@ -638,7 +639,7 @@ Vue.component('cnx-page', {
 	},
 	mounted() {
 		// Allow inline buttons to call handleUserInput
-		window.__vueHandle = (value, type) => {
+		window.__vueHandle = async (value, type) => {
 			if (type === "SEND_TRAINING_MESSAGE") {
 				this.sendTrainingMessage(value);
 			} else if (type === "EDIT_FAQ") {
@@ -648,6 +649,29 @@ Vue.component('cnx-page', {
 			} else if (type === "DELETE_FAQ") {
 				const faq = window._faqMap.get(value);
 				this.sendTrainingMessage("confirm")
+			}
+			// ✅ Handle invoice download
+			else if (type === "INVOICE_DOWNLOAD") {
+				const url = value;
+				const fileName = url.split("/").pop();
+				try {
+					console.log("---------------------------FETCHING_______________")
+					const response = await fetch(url);
+					const blob = await response.blob();
+					const link = document.createElement("a");
+					link.href = window.URL.createObjectURL(blob);
+					link.download = fileName;
+					link.click();
+					window.URL.revokeObjectURL(link.href);
+					link.remove();
+
+
+					console.log("✅ File download triggered:", fileName);
+				} catch (err) {
+					console.error("❌ File download failed:", err);
+					// fallback: open in new tab
+					window.open(url, "_blank");
+				}
 			}
 		};
 	},
@@ -971,6 +995,7 @@ Vue.component('cnx-page', {
 			this.lastBotMessage = '';
 			this.faqFlowStarted = false;
 			this.faqMode = '';
+			this.displayConfirmTrainingBtn = false;
 		},
 		formattedMessages() {
 			if (this.trainingMode) {
@@ -1133,7 +1158,8 @@ Vue.component('cnx-page', {
 				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 				"application/pdf",
 				"image/png",
-				"image/jpeg"
+				"image/jpeg",
+				"text/csv"
 			];
 
 			files.forEach(file => {
@@ -1180,7 +1206,7 @@ Vue.component('cnx-page', {
 							: this.faqMode === "EDIT" ?
 								`You are on training mode. Update the provided FAQ question and answer in the system. Don't modify or reframe the content.`
 								: `You are on training mode. Delete the provided FAQ in the system.`
-						: `Reframe the given message.`
+						: "faq_question_answer_reframer"
 				},
 				{
 					role: "user",
@@ -1193,16 +1219,33 @@ Vue.component('cnx-page', {
 				max_tokens: 0
 			};
 			this.lastBotMessage = '';
+			if (value === "reframe") {
+				this.displayConfirmTrainingBtn = true;
+			}
 			executeAppAPI("chataiapi", { input: parameters }, null, this.handleTrainingModeResult);
 		},
 		handleTrainingModeResult(response) {
 			if (response.status == 'OK') {
 				console.log("response", JSON.parse(response.result));
 				const data = JSON.parse(response.result);
-				const reply = data?.choices?.[0]?.message?.content || "No reply received.";
+				let reply = data?.choices?.[0]?.message?.content || "No reply received.";
+				if (this.displayConfirmTrainingBtn) {
+					this.lastBotMessage = reply;
+					reply += `<br /><button 
+                                    class="faq-btn confirm-btn" 
+                                    onclick="window.__vueHandle('confirm', 'SEND_TRAINING_MESSAGE')">
+                                        <span class="material-icons" style="vertical-align:middle;">check</span>
+                                    </button>
+                                    <button 
+                                    class="faq-btn again-btn" 
+                                    onclick="window.__vueHandle('reframe', 'SEND_TRAINING_MESSAGE')">
+                                        <span class="material-icons" style="vertical-align:middle;">refresh</span>
+                                    </button>`
+					this.displayConfirmTrainingBtn = false;
+				}
 				this.messages[this.botIndex].text = reply;
 				this.messages[this.botIndex].isLoading = false;
-				console.log("message array", this.messages)
+				console.log("message array", this.messages);
 			} else {
 				console.error('Error calling API:', err);
 				this.messages[botIndex] = { from: 'bot', text: 'Sorry, there was an error processing your request.', isLoading: false };
@@ -1222,7 +1265,7 @@ Vue.component('cnx-page', {
 			// Reset input field after processing command
 			// If no command, proceed with normal message sending
 			// Check for quick question commands
-			if ((quickQuestion.includes("create") || quickQuestion.includes("add")) &&
+			if (!this.trainingMode && (quickQuestion.includes("create") || quickQuestion.includes("add")) &&
 				(quickQuestion.includes("user") || quickQuestion.includes("client") || quickQuestion.includes("case") || quickQuestion.includes("note"))) {
 				const type = quickQuestion.includes("user") ? 'users' :
 					quickQuestion.includes("client") ? 'clients' :
@@ -1241,7 +1284,6 @@ Vue.component('cnx-page', {
 				if (msg) {
 					this.messages.push({ from: 'user', text: msg, isLoading: false });
 				}
-				console.log("NEW USER MSG ADDED in message array", this.messages)
 				if (this.attachedFiles.length) {
 					this.fileSummary = "YES";
 					this.attachedFiles.forEach(file => {
@@ -1268,10 +1310,7 @@ Vue.component('cnx-page', {
 					parameters = {
 						messages: [{
 							"role": "system",
-							"content": `You are an AI assistant that reformulates FAQ pairs. From the conversation history, 
-							rewrite the user's input as a single FAQ **question** and **answer** pair only. 
-							Do not add explanations, extra text, or metadata. 
-							Return only the reframed question and answer.`
+							"content": `faq_question_answer_reframer`
 						},
 						...formattedMessages],
 						files: this.attachedFiles,
@@ -1285,39 +1324,7 @@ Vue.component('cnx-page', {
 						messages: [
 							{
 								"role": "system",
-								"content": this.attachedFiles.length == 0 ? `You are Iris, You are a friendly, 
-						helpful assistant for QTIS application. You help users navigate the site, answer FAQs, 
-						and guide them to relevant pages. If you don't know something, say you don't know instead of making things up. 
-						say you are assistant to the users chatting with you, providing responses with proper alignment, 
-						spaces in more readable format which can be interpretted in HTML. 
-						You are not just a computer program. Always respond in pure HTML format using <b> for bold and <br> for line breaks.
-						Never use Markdown and preserve conversation context. 
-						see the previous messages for context. Give good detailed answer not just one line` :
-									`You are an AI assistant that analyzes uploaded case files for investigators.
-								Your job:
-								1. Read the provided file metadata and content.
-								2. Summarize the file in 2–3 sentences.
-								3. Highlight important entities, keywords, and phrases using <b>…</b> tags for emphasis.
-								4. Assign relevant tags (short keywords, max 8).
-								5. Suggest one or more categories from this predefined taxonomy:
-								- Suspect Statement
-								- Witness Statement
-								- Vehicle Evidence
-								- Financial Record
-								- Phone Record
-								- Weapon Evidence
-								- General Document
-								6. Provide the output as clean HTML (no extra commentary) that can be directly displayed in a chat response.
-
-								HTML layout must contain:
-								- A summary with <b>highlighted</b> terms.
-								- <br> for line breaks
-								- A tag section (inline chips or comma-separated).
-								- A category section with suggested categories.
-								- Optional confidence scores.
-
-								Do not output JSON. Only HTML with highlights and sections.
-								Preserve conversation context. see the previous messages for context.`
+								"content": this.attachedFiles.length == 0 ? `chat_agent` : `file_summarization`
 							},
 							...formattedMessages
 						],
@@ -1342,7 +1349,7 @@ Vue.component('cnx-page', {
 				}
 				if (this.displayConfirmTrainingBtn) {
 					this.lastBotMessage = reply;
-					reply += `<button 
+					reply += `<br /><button 
                                     class="faq-btn confirm-btn" 
                                     onclick="window.__vueHandle('confirm', 'SEND_TRAINING_MESSAGE')">
                                         <span class="material-icons" style="vertical-align:middle;">check</span>
@@ -1352,6 +1359,12 @@ Vue.component('cnx-page', {
                                     onclick="window.__vueHandle('reframe', 'SEND_TRAINING_MESSAGE')">
                                         <span class="material-icons" style="vertical-align:middle;">refresh</span>
                                     </button>`
+					this.displayConfirmTrainingBtn = false;
+				} else if (reply.includes("Download Invoice")) {
+					reply = reply.replace(
+						/<a([^>]*)href="([^"]+)"([^>]*)>/,
+						`<a$1href="$2"$3 onclick="window.__vueHandle('$2', 'INVOICE_DOWNLOAD')">`
+					);
 				}
 				this.messages[this.botIndex].text = reply;
 				this.messages[this.botIndex].isLoading = false;
@@ -1503,9 +1516,9 @@ Vue.component('cnx-navmenu', {
 		</q-list>
 		<template v-if="user.tenantId == 'chatai'">
 			<div ref="chatBtn"
-				style="z-index:10;position: fixed; bottom: 20px; right: 40px; z-index: 9999; animation: fadeDark 2s infinite ease-in-out;">
-				<img src="https://res.cloudinary.com/dn7ejk1ei/image/upload/v1757864421/image_2_1_prdwfg.png" alt="Chatbot" @click="openChat"
-				style="width: 200px; height: 100px; cursor: pointer;" />
+				style="z-index:10;position: fixed; bottom: -22px; right: 7px; z-index: 9999;">
+				<img  :src=" baseURL + '/common/images/chat_bot_gif.gif'" alt="Chatbot" @click="openChat"
+				style="width: 235px; height: 165px; cursor: pointer;" />
 				</q-btn>
 			</div>
 		</template>
@@ -2328,7 +2341,3 @@ Vue.component('cnx-user-profile-settings', {
 	}
 
 });
-
-
-
-

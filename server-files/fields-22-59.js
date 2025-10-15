@@ -684,7 +684,7 @@ var editorFieldTemplate = `
 						]
 					  },
 					],
-					['bold', 'italic', 'strike', 'underline'],['rewrite', 'undo', 'aiAssist'], ['token'], ['removeFormat']]" :definitions="editorDefinitions">
+					['bold', 'italic', 'strike', 'underline'], ['rewrite','undo','aiAssist'], ['token'], ['removeFormat']]" :definitions="editorDefinitions">
 					<template v-slot:token>
 						<q-btn-dropdown dense no-caps ref="token" no-wrap unelevated color="white" text-color="primary" label="Text Color" size="sm">
 						  <q-list dense class="editor-color-box">
@@ -775,7 +775,8 @@ var editorFieldTemplate = `
         </div>
         <!-- Create Button -->
         <div class="q-mt-sm">
-          <q-btn round color="primary" icon="add" size="sm" @click="openEntityForm(entity)"/>
+          <q-btn v-if="!entity.checked" round color="primary" icon="add" size="sm" @click="openEntityForm(entity, index)"/>
+		  <q-btn v-else round color="primary" icon="task_alt" size="sm" />
         </div>
       </div>
    </div>
@@ -814,7 +815,7 @@ var editorFieldTemplate = `
 						]
 					  },
 					],
-					['bold', 'italic', 'strike', 'underline'], ['rewrite', 'undo', 'aiAssist'], ['upload'], ['token'], ['removeFormat']] :definitions="editorDefinitions"">
+					['bold', 'italic', 'strike', 'underline'],  ['rewrite','undo','aiAssist'], ['upload'], ['token'], ['removeFormat']] :definitions="editorDefinitions"">
 					<template v-slot:token>
 						<q-btn-dropdown dense no-caps ref="token" no-wrap unelevated color="white" text-color="primary" label="Text Color" size="sm">
 						  <q-list dense class="editor-color-box">
@@ -907,7 +908,8 @@ var editorFieldTemplate = `
         </div>
         <!-- Create Button -->
         <div class="q-mt-sm">
-          <q-btn round color="primary" icon="add" size="sm" @click="openEntityForm(entity)" />
+          <q-btn v-if="!entity.checked" round color="primary" icon="add" size="sm" @click="openEntityForm(entity, index)"/>
+		  <q-btn v-else round color="primary" icon="task_alt" size="sm" />
         </div>
       </div>
   </div>
@@ -949,7 +951,12 @@ Vue.component('cnx-field-texteditor', {
 			undoText: [],
 			showAiPopover: false,
 			aiAssistLoading: false,
+			currentEntityIndex: null,
+			isInputEmpty: true
 		};
+	},
+	created() {
+		this.$root.registerEventListener("itemSaved", this); // 👈 register listener
 	},
 	computed: {
 		editorDefinitions() {
@@ -959,8 +966,8 @@ Vue.component('cnx-field-texteditor', {
 					icon: 'auto_awesome',
 					label: this.suggestedTextLoading ? 'Rewriting...' : 'Rewrite with AI',
 					round: true,
-					color: this.suggestedTextLoading || this.texteditorValue.trim() === '' ? 'grey' : 'primary',
-					disable: this.suggestedTextLoading || this.texteditorValue.trim() === '',
+					color: this.suggestedTextLoading || this.isInputEmpty ? 'grey' : 'primary',
+					disable: this.suggestedTextLoading || this.isInputEmpty,
 					loading: this.suggestedTextLoading,
 					handler: () => {
 						this.getAISuggestions();
@@ -985,8 +992,8 @@ Vue.component('cnx-field-texteditor', {
 					icon: 'smart_toy',
 					label: 'AI Assist',
 					round: true,
-					color: this.texteditorValue.trim() === '' || this.aiAssistLoading ? 'grey' : 'primary',
-					disable: this.texteditorValue.trim() === '' || this.aiAssistLoading,
+					color: this.isInputEmpty || this.aiAssistLoading ? 'grey' : 'primary',
+					disable: this.isInputEmpty || this.showAiPopover,
 					handler: () => {
 						var HomeMenu = webModule;
 						console.log("HomeMenu", HomeMenu);
@@ -999,6 +1006,13 @@ Vue.component('cnx-field-texteditor', {
 		}
 	},
 	methods: {
+		notifyEvent(event, eventData) {
+			if (event === "itemSaved") {
+				if (this.currentEntityIndex >= 0) {
+					this.parsedEntities[this.currentEntityIndex].checked = true;
+				}
+			}
+		},
 		applySuggestion() {
 			if (this.suggestedText !== '') {
 				this.texteditorValue = this.suggestedText;
@@ -1011,74 +1025,13 @@ Vue.component('cnx-field-texteditor', {
 			this.showMenu = !this.showMenu;
 		},
 		async getAiAssist() {
-			const prompt = `You are a data extraction assistant. You are given unstructured text that may refer to clients, cases, users, or notes.
-						You are given the following entities that can be created, each with their respective fields:
-						users → { firstName, lastName, email, phoneNumber, address }
-						clients → { firstName, lastName, middleName, streetAddress, company, homePhone, cellPhone, email, dateOfBirth, DL }
-						cases → { client, caseType, lawyer, country, caseNumber, status (ACTIVE, INACTIVE, COMPLETED), startDate, endDate, mileRateCost, notes, insuranceClaim - either 1 or 0 - default is 0 }
-						FileImportMap → { mappingName, entityMapping, mappingEntityId }
-						notepad → { notes }
-						You will receive a natural language message. Your task is to:
-						Identify which entity or entities need to be created.
-						Give me more than one entity if possible.
-						Extract the relevant fields and values from the message.
-						Return the result as array of JSON objects.
-												
-						Example input message:
-						"Ravi Kumar reported a robbery near the gas station. Case ID C12345. Lawyer: John Doe. Case started on 1st Sep 2025."
-
-						Expected output:
-						{
-						"entities": [
-							{
-							"type": "clients",
-							"fields": {
-								"firstName": "Ravi",
-								"lastName": "Kumar",
-								"email": null,
-								"phoneNumber": null
-							}
-							},
-							{
-							"type": "cases",
-							"fields": {
-								"client": "Ravi Kumar",
-								"caseType": "Robbery",
-								"lawyer": "John Doe",
-								"status": "ACTIVE",
-								"startDate": "2025-09-01",
-								"endDate": null
-							}
-							}
-						]
-						}
-						example output:
-						{
-							"entities": [
-								{
-									"type": "users",
-									"fields": {
-										"firstName": "John",
-										"lastName": "Doe",
-										"email": "john.doe@example.com"
-									}
-								}
-							]
-						}
-						If the message does not contain enough structured data for predefined entities, 
-						store the content as a "notepad" entity with "notes" field containing the full message.
-						Message:` + this.texteditorValue;
-
 			const parameters = {
 				messages: [
 					{
 						"role": "system",
-						"content": "You are an assistant that extracts entities and their fields from a given message and returns them in a structured JSON format. \
-					  Identify which entity or entities need to be created based on the message. \
-					  Extract the relevant fields and values from the message. \
-					  Return the result as a JSON object."
+						"content": "ai_assist"
 					},
-					{ role: 'user', content: prompt }
+					{ role: 'user', content: this.texteditorValue }
 				],
 				files: [],
 				summarizeFiles: false,
@@ -1094,11 +1047,16 @@ Vue.component('cnx-field-texteditor', {
 				console.log('AI Assist Result--------->', contents);
 				contents = contents.replace(/```json|```/g, '').trim();
 				this.parsedEntities = JSON.parse(contents).entities || [];
-				console.log('AI Assist Result 1--------->', this.parsedEntities.entities);
+				this.parsedEntities = this.parsedEntities.map((entity) => ({
+					...entity,
+					checked: false
+				}));
+				console.log('AI Assist Result 1--------->', this.parsedEntities);
 				this.aiAssistLoading = false;
 			}
 		},
-		openEntityForm(entity) {
+		openEntityForm(entity, index) {
+			this.currentEntityIndex = index;
 			var widgetEntityForm = app.getGlobalComponent("widgetEntityForm");
 			var record = { rowState: 1, entityId: "cl1dWqPym2tmGfJKzDnV3WiX" }
 			if (entity.type === 'users') {
@@ -1130,9 +1088,7 @@ Vue.component('cnx-field-texteditor', {
 				messages: [
 					{
 						"role": "system",
-						"content": "You are an assistant that rewrites text to be clear, concise, and well-formatted while keeping the same meaning. \
-					  Use pure HTML for formatting (<b> for emphasis, <br> for line breaks). Do not add new ideas or change context. \
-					  Keep it natural and easy to read. If any question is asked, just reframe the question and do not answer it."
+						"content": "ai_rephraser"
 					},
 					{ role: 'user', content: this.texteditorValue }
 				],
@@ -1169,6 +1125,7 @@ Vue.component('cnx-field-texteditor', {
 
 		TextValue(textVal, hasValue) {
 			if (hasValue) {
+				this.isInputEmpty = false;
 				if (this.texteditorValue == '') {
 					this.texteditorValue = this.dataModel.Notes;
 				}
@@ -1181,10 +1138,23 @@ Vue.component('cnx-field-texteditor', {
 			edit.runCmd(cmd, name);
 			edit.focus();
 		},
+		isRTEEmpty(rteContent) {
+			if (!rteContent) return true; // null, undefined, empty string
+
+			// Remove spaces, &nbsp;, <br>, and other empty HTML tags
+			const cleaned = rteContent
+				.replace(/&nbsp;/g, '')   // remove non-breaking spaces
+				.replace(/<br\s*\/?>/gi, '') // remove <br> or <br/>
+				.replace(/<p>\s*<\/p>/gi, '') // remove empty paragraphs
+				.trim();
+
+			return cleaned === '';
+		},
 		handleEditorChange() {
 			var newValue = this.texteditorValue;
 			var prevValue = '';
-			this.logValueChange(prevValue, newValue);
+			this.isInputEmpty = this.isRTEEmpty(newValue)
+			this.logValueChange(prevValue, newValue, 'txtChanges');
 		},
 		logValueChange(oldValue, newValue) {
 			if (oldValue != newValue) {
@@ -1232,7 +1202,12 @@ Vue.component('cnx-field-texteditorMsg', {
 			aiAssistLoading: false,
 			parsedEntities: [],
 			showAiPopover: false,
+			currentEntityIndex: null,
+			isInputEmpty: true
 		}
+	},
+	created() {
+		this.$root.registerEventListener("itemSaved", this); // 👈 register listener
 	},
 	computed: {
 		editorDefinitions() {
@@ -1242,8 +1217,8 @@ Vue.component('cnx-field-texteditorMsg', {
 					icon: 'auto_awesome',
 					label: this.suggestedTextLoading ? 'Rewriting...' : 'Rewrite with AI',
 					round: true,
-					color: this.suggestedTextLoading || this.texteditorValue.trim() === '' ? 'grey' : 'primary',
-					disable: this.suggestedTextLoading || this.texteditorValue.trim() === '',
+					color: this.suggestedTextLoading || this.isInputEmpty ? 'grey' : 'primary',
+					disable: this.suggestedTextLoading || this.isInputEmpty,
 					loading: this.suggestedTextLoading,
 					handler: () => {
 						this.getAISuggestions();
@@ -1267,8 +1242,8 @@ Vue.component('cnx-field-texteditorMsg', {
 					icon: 'smart_toy',
 					label: 'AI Assist',
 					round: true,
-					disable: this.texteditorValue.trim() === '' || this.aiAssistLoading,
-					color: this.texteditorValue.trim() === '' || this.aiAssistLoading ? 'grey' : 'primary',
+					disable: this.isInputEmpty || this.showAiPopover,
+					color: this.isInputEmpty || this.aiAssistLoading ? 'grey' : 'primary',
 					handler: () => {
 						var HomeMenu = webModule;
 						console.log("HomeMenu", HomeMenu);
@@ -1281,6 +1256,13 @@ Vue.component('cnx-field-texteditorMsg', {
 		}
 	},
 	methods: {
+		notifyEvent(event, eventData) {
+			if (event === "itemSaved") {
+				if (this.currentEntityIndex >= 0) {
+					this.parsedEntities[this.currentEntityIndex].checked = true;
+				}
+			}
+		},
 		applySuggestion() {
 			if (this.suggestedText !== '') {
 				this.texteditorValue = this.suggestedText;
@@ -1293,74 +1275,13 @@ Vue.component('cnx-field-texteditorMsg', {
 			this.showMenu = !this.showMenu;
 		},
 		async getAiAssist() {
-			const prompt = `You are a data extraction assistant. You are given unstructured text that may refer to clients, cases, users, or notes.
-						You are given the following entities that can be created, each with their respective fields:
-						users → { firstName, lastName, email, phoneNumber, address }
-						clients → { firstName, lastName, middleName, streetAddress, company, homePhone, cellPhone, email, dateOfBirth, DL }
-						cases → { client, caseType, lawyer, country, caseNumber, status (ACTIVE, INACTIVE, COMPLETED), startDate, endDate, mileRateCost, notes, insuranceClaim - either 1 or 0 - default is 0 }
-						FileImportMap → { mappingName, entityMapping, mappingEntityId }
-						notepad → { notes }
-						You will receive a natural language message. Your task is to:
-						Identify which entity or entities need to be created.
-						Give me more than one entity if possible.
-						Extract the relevant fields and values from the message.
-						Return the result as array of JSON objects.
-												
-						Example input message:
-						"Ravi Kumar reported a robbery near the gas station. Case ID C12345. Lawyer: John Doe. Case started on 1st Sep 2025."
-
-						Expected output:
-						{
-						"entities": [
-							{
-							"type": "clients",
-							"fields": {
-								"firstName": "Ravi",
-								"lastName": "Kumar",
-								"email": null,
-								"phoneNumber": null
-							}
-							},
-							{
-							"type": "cases",
-							"fields": {
-								"client": "Ravi Kumar",
-								"caseType": "Robbery",
-								"lawyer": "John Doe",
-								"status": "ACTIVE",
-								"startDate": "2025-09-01",
-								"endDate": null
-							}
-							}
-						]
-						}
-						example output:
-						{
-							"entities": [
-								{
-									"type": "users",
-									"fields": {
-										"firstName": "John",
-										"lastName": "Doe",
-										"email": "john.doe@example.com"
-									}
-								}
-							]
-						}
-						If the message does not contain enough structured data for predefined entities, 
-						store the content as a "notepad" entity with "notes" field containing the full message.
-						Message:` + this.texteditorValue;
-
 			const parameters = {
 				messages: [
 					{
 						"role": "system",
-						"content": "You are an assistant that extracts entities and their fields from a given message and returns them in a structured JSON format. \
-					  Identify which entity or entities need to be created based on the message. \
-					  Extract the relevant fields and values from the message. \
-					  Return the result as a JSON object."
+						"content": "ai_assist"
 					},
-					{ role: 'user', content: prompt }
+					{ role: 'user', content: this.texteditorValue }
 				],
 				files: [],
 				summarizeFiles: false,
@@ -1376,11 +1297,16 @@ Vue.component('cnx-field-texteditorMsg', {
 				console.log('AI Assist Result--------->', contents);
 				contents = contents.replace(/```json|```/g, '').trim();
 				this.parsedEntities = JSON.parse(contents).entities || [];
+				this.parsedEntities = this.parsedEntities.map((entity) => ({
+					...entity,
+					checked: false
+				}));
 				console.log('AI Assist Result 1--------->', this.parsedEntities.entities);
 				this.aiAssistLoading = false;
 			}
 		},
-		openEntityForm(entity) {
+		openEntityForm(entity, index) {
+			this.currentEntityIndex = index;
 			var widgetEntityForm = app.getGlobalComponent("widgetEntityForm");
 			var record = { rowState: 1, entityId: "cl1dWqPym2tmGfJKzDnV3WiX" }
 			if (entity.type === 'users') {
@@ -1415,9 +1341,7 @@ Vue.component('cnx-field-texteditorMsg', {
 				messages: [
 					{
 						"role": "system",
-						"content": "You are an assistant that rewrites text to be clear, concise, and well-formatted while keeping the same meaning. \
-					  Use pure HTML for formatting (<b> for emphasis, <br> for line breaks). Do not add new ideas or change context. \
-					  Keep it natural and easy to read. If any question is asked, just reframe the question and do not answer it."
+						"content": "ai_rephraser"
 					},
 					{ role: 'user', content: this.texteditorValue }
 				],
@@ -1453,6 +1377,7 @@ Vue.component('cnx-field-texteditorMsg', {
 		},
 		TextValue(textVal, hasValue) {
 			if (hasValue) {
+				this.isInputEmpty = false;
 				if (this.texteditorValue == '') {
 					this.texteditorValue = this.dataModel.Message;
 				}
@@ -1465,10 +1390,23 @@ Vue.component('cnx-field-texteditorMsg', {
 			edit.runCmd(cmd, name);
 			edit.focus();
 		},
+		isRTEEmpty(rteContent) {
+			if (!rteContent) return true; // null, undefined, empty string
+
+			// Remove spaces, &nbsp;, <br>, and other empty HTML tags
+			const cleaned = rteContent
+				.replace(/&nbsp;/g, '')   // remove non-breaking spaces
+				.replace(/<br\s*\/?>/gi, '') // remove <br> or <br/>
+				.replace(/<p>\s*<\/p>/gi, '') // remove empty paragraphs
+				.trim();
+
+			return cleaned === '';
+		},
 		handleEditorChange() {
 			var newValue = this.texteditorValue;
 			var prevValue = '';
-			this.logValueChange(prevValue, newValue);
+			this.isInputEmpty = this.isRTEEmpty(newValue)
+			this.logValueChange(prevValue, newValue, 'txtChanges');
 		},
 		logValueChange(oldValue, newValue) {
 			if (oldValue != newValue) {
@@ -1521,9 +1459,12 @@ Vue.component('cnx-field-texteditorComments', {
 			parsedEntities: [],
 			aiAssistLoading: false,
 			showAiPopover: false,
+			currentEntityIndex: null,
+			isInputEmpty: true
 		}
 	},
 	created() {
+		this.$root.registerEventListener("itemSaved", this); // 👈 register listener
 		if (this.uiprops.accessFunctionId.startsWith("entities.cAoEQAjKmjIqRtwQ26QadeFX") && subTenantName == "ls100832" && FormState == 'New') {
 			this.texteditorValue = '<table><tr><td colspan="2" style="width: 350px;"><img src="https://clientportal.qtis.us/common/images/LS-notes-logo.png" width="300px"/></td></tr><tr> <td colspan="2" style="font-weight: 700; width: 300px; font-size: 17px; text-decoration: underline; padding: 20px 0;">DAILY INVESTIGATIVE UPDATE</td></tr><tr> <td style="font-weight: 700; width: 245px; padding: 5px 0;">Claimant’s name<span style="float: right;">:</span></td><td style="font-weight: 700; width: 245px; padding: 5px 10px;"></td></tr><tr> <td style="font-weight: 700; width: 245px; padding: 5px 0;">LaSalle Investigations case #<span style="float: right;">:</span></td><td style="font-weight: 700; width: 245px; padding: 5px 10px;"></td></tr><tr> <td style="font-weight: 700; width: 245px; padding: 5px 0;">Injury<span style="float: right;">:</span></td><td style="font-weight: 700; width: 245px; padding: 5px 10px;"></td></tr><tr> <td style="font-weight: 700; width: 245px; padding: 5px 0;">Investigator<span style="float: right;">:</span></td><td style="font-weight: 700; width: 245px; padding: 5px 10px;"></td></tr><tr> <td style="font-weight: 700; width: 245px; padding: 5px 0;">Date and Times of Investigation<span style="float: right;">:</span></td><td style="font-weight: 700; width: 245px; padding: 5px 10px;"></td></tr><tr> <td style="font-weight: 700; width: 245px; padding: 5px 0;">Claimant video amount<span style="float: right;">:</span></td><td style="font-weight: 700; width: 245px; padding: 5px 10px;"></td></tr></table><div> <p style="text-decoration: underline; margin-bottom: 0;">Synopsis of Claimant Activity:</p><p style="margin: 0; min-height:20px;">During the surveillance,</p></div><div> <p style="text-decoration: underline; padding-top: 20px; margin-bottom: 0;">Case Status:</p><p style="margin-top: 0; min-height:20px;"></p></div><div class="images-thumbnail-wrap"> <p style="text-decoration: underline;">Pertinent video snapshots:</p><div class="images-thumbnail"></div></div><div> <p style="text-decoration: underline; padding-top: 20px; margin-bottom: 0;">Associated vehicles:</p><p style="margin-top: 0; min-height:20px;"></p></div><div> <p style="text-decoration: underline; padding-top: 20px; margin-bottom: 0;">Directions to residence:</p><p style="margin-top: 0; min-height:20px;"></p></div><div> <p style="text-decoration: underline; padding-top: 20px; margin-bottom: 0;">Surveillance position/pretext used:</p><p style="margin-top: 0; min-height:20px;"></p></div>';
 		}
@@ -1536,8 +1477,8 @@ Vue.component('cnx-field-texteditorComments', {
 					icon: 'auto_awesome',
 					label: this.suggestedTextLoading ? 'Rewriting...' : 'Rewrite with AI',
 					round: true,
-					color: this.suggestedTextLoading || this.texteditorValue.trim() === '' ? 'grey' : 'primary',
-					disable: this.suggestedTextLoading || this.texteditorValue.trim() === '',
+					color: this.suggestedTextLoading || this.isInputEmpty ? 'grey' : 'primary',
+					disable: this.suggestedTextLoading || this.isInputEmpty,
 					loading: this.suggestedTextLoading,
 					handler: () => {
 						this.getAISuggestions();
@@ -1561,8 +1502,8 @@ Vue.component('cnx-field-texteditorComments', {
 					icon: 'smart_toy',
 					label: 'AI Assist',
 					round: true,
-					color: this.texteditorValue.trim() === '' || this.aiAssistLoading ? 'grey' : 'primary',
-					disable: this.texteditorValue.trim() === '' || this.aiAssistLoading,
+					color: this.isInputEmpty || this.aiAssistLoading ? 'grey' : 'primary',
+					disable: this.isInputEmpty || this.showAiPopover,
 					handler: () => {
 						var HomeMenu = webModule;
 						console.log("HomeMenu", HomeMenu);
@@ -1575,6 +1516,13 @@ Vue.component('cnx-field-texteditorComments', {
 		}
 	},
 	methods: {
+		notifyEvent(event, eventData) {
+			if (event === "itemSaved") {
+				if (this.currentEntityIndex >= 0) {
+					this.parsedEntities[this.currentEntityIndex].checked = true;
+				}
+			}
+		},
 		applySuggestion() {
 			if (this.suggestedText !== '') {
 				this.texteditorValue = this.suggestedText;
@@ -1587,74 +1535,13 @@ Vue.component('cnx-field-texteditorComments', {
 			this.showMenu = !this.showMenu;
 		},
 		async getAiAssist() {
-			const prompt = `You are a data extraction assistant. You are given unstructured text that may refer to clients, cases, users, or notes.
-						You are given the following entities that can be created, each with their respective fields:
-						users → { firstName, lastName, email, phoneNumber, address }
-						clients → { firstName, lastName, middleName, streetAddress, company, homePhone, cellPhone, email, dateOfBirth, DL }
-						cases → { client, caseType, lawyer, country, caseNumber, status (ACTIVE, INACTIVE, COMPLETED), startDate, endDate, mileRateCost, notes, insuranceClaim - either 1 or 0 - default is 0 }
-						FileImportMap → { mappingName, entityMapping, mappingEntityId }
-						notepad → { notes }
-						You will receive a natural language message. Your task is to:
-						Identify which entity or entities need to be created.
-						Give me more than one entity if possible.
-						Extract the relevant fields and values from the message.
-						Return the result as array of JSON objects.
-												
-						Example input message:
-						"Ravi Kumar reported a robbery near the gas station. Case ID C12345. Lawyer: John Doe. Case started on 1st Sep 2025."
-
-						Expected output:
-						{
-						"entities": [
-							{
-							"type": "clients",
-							"fields": {
-								"firstName": "Ravi",
-								"lastName": "Kumar",
-								"email": null,
-								"phoneNumber": null
-							}
-							},
-							{
-							"type": "cases",
-							"fields": {
-								"client": "Ravi Kumar",
-								"caseType": "Robbery",
-								"lawyer": "John Doe",
-								"status": "ACTIVE",
-								"startDate": "2025-09-01",
-								"endDate": null
-							}
-							}
-						]
-						}
-						example output:
-						{
-							"entities": [
-								{
-									"type": "users",
-									"fields": {
-										"firstName": "John",
-										"lastName": "Doe",
-										"email": "john.doe@example.com"
-									}
-								}
-							]
-						}
-						If the message does not contain enough structured data for predefined entities, 
-						store the content as a "notepad" entity with "notes" field containing the full message.
-						Message:` + this.texteditorValue;
-
 			const parameters = {
 				messages: [
 					{
 						"role": "system",
-						"content": "You are an assistant that extracts entities and their fields from a given message and returns them in a structured JSON format. \
-					  Identify which entity or entities need to be created based on the message. \
-					  Extract the relevant fields and values from the message. \
-					  Return the result as a JSON object."
+						"content": "ai_assist"
 					},
-					{ role: 'user', content: prompt }
+					{ role: 'user', content: this.texteditorValue }
 				],
 				files: [],
 				summarizeFiles: false,
@@ -1670,11 +1557,16 @@ Vue.component('cnx-field-texteditorComments', {
 				console.log('AI Assist Result--------->', contents);
 				contents = contents.replace(/```json|```/g, '').trim();
 				this.parsedEntities = JSON.parse(contents).entities || [];
+				this.parsedEntities = this.parsedEntities.map((entity) => ({
+					...entity,
+					checked: false
+				}));
 				console.log('AI Assist Result 1--------->', this.parsedEntities.entities);
 				this.aiAssistLoading = false;
 			}
 		},
-		openEntityForm(entity) {
+		openEntityForm(entity, index) {
+			this.currentEntityIndex = index;
 			var widgetEntityForm = app.getGlobalComponent("widgetEntityForm");
 			var record = { rowState: 1, entityId: "cl1dWqPym2tmGfJKzDnV3WiX" }
 			if (entity.type === 'users') {
@@ -1712,9 +1604,7 @@ Vue.component('cnx-field-texteditorComments', {
 				messages: [
 					{
 						"role": "system",
-						"content": "You are an assistant that rewrites text to be clear, concise, and well-formatted while keeping the same meaning. \
-					  Use pure HTML for formatting (<b> for emphasis, <br> for line breaks). Do not add new ideas or change context. \
-					  Keep it natural and easy to read. If any question is asked, just reframe the question and do not answer it."
+						"content": "ai_rephraser"
 					},
 					{ role: 'user', content: this.texteditorValue }
 				],
@@ -1866,6 +1756,7 @@ Vue.component('cnx-field-texteditorComments', {
 		},
 		TextValue(textVal, hasValue) {
 			if (hasValue) {
+				this.isInputEmpty = false;
 				if (this.texteditorValue == '') {
 					this.texteditorValue = this.dataModel.comments;
 				}
@@ -1878,9 +1769,22 @@ Vue.component('cnx-field-texteditorComments', {
 			edit.runCmd(cmd, name);
 			edit.focus();
 		},
+		isRTEEmpty(rteContent) {
+			if (!rteContent) return true; // null, undefined, empty string
+
+			// Remove spaces, &nbsp;, <br>, and other empty HTML tags
+			const cleaned = rteContent
+				.replace(/&nbsp;/g, '')   // remove non-breaking spaces
+				.replace(/<br\s*\/?>/gi, '') // remove <br> or <br/>
+				.replace(/<p>\s*<\/p>/gi, '') // remove empty paragraphs
+				.trim();
+
+			return cleaned === '';
+		},
 		handleEditorChange() {
 			var newValue = this.texteditorValue;
 			var prevValue = '';
+			this.isInputEmpty = this.isRTEEmpty(newValue)
 			this.logValueChange(prevValue, newValue, 'txtChanges');
 		},
 		checkImages(oldValue, newValue, changed) {
